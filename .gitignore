@@ -10,6 +10,7 @@
 .springBeans
 .sts4-cache
 
+### all the properties files including datatbase configuration ###
 *.properties
 # Created by https://www.gitignore.io/api/git,java,maven,eclipse,windows
 

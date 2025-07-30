@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns="http://xmlns.jcp.org/xml/ns/javaee"
+	xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_4_0.xsd"
+	id="WebApp_ID" version="4.0">
+	<display-name>MazeBank</display-name>
+	<welcome-file-list>
+		<welcome-file>index.jsp</welcome-file>
+	</welcome-file-list>
+	<filter>
+		<filter-name>HttpMethodOverrideFilter</filter-name>
+		<filter-class>com.mazebank.filter.HttpMethodOverrideFilter</filter-class>
+	</filter>
+	<filter-mapping>
+		<filter-name>HttpMethodOverrideFilter</filter-name>
+		<url-pattern>/app/*</url-pattern>
+	</filter-mapping>
+
+	<filter>
+		<filter-name>AuthFilter</filter-name>
+		<filter-class>com.mazebank.filter.AuthFilter</filter-class>
+	</filter>
+	<filter-mapping>
+		<filter-name>AuthFilter</filter-name>
+		<url-pattern>/app/*</url-pattern>
+	</filter-mapping>
+	<filter-mapping>
+		<filter-name>AuthFilter</filter-name>
+		<url-pattern>/WEB-INF/jsp/*</url-pattern>
+	</filter-mapping>
+
+	<servlet>
+		<servlet-name>FrontControllerServlet</servlet-name>
+		<servlet-class>com.mazebank.servlets.FrontControllerServlet</servlet-class>
+		<load-on-startup>1</load-on-startup>
+	</servlet>
+	<servlet-mapping>
+		<servlet-name>FrontControllerServlet</servlet-name>
+		<url-pattern>/app/*</url-pattern>
+	</servlet-mapping>
+
+	<error-page>
+		<exception-type>java.lang.Exception</exception-type>
+		<location>/WEB-INF/jsp/error.jsp</location>
+	</error-page>
+	<error-page>
+		<error-code>404</error-code>
+		<location>/WEB-INF/jsp/error.jsp</location>
+	</error-page>
+	<error-page>
+		<error-code>500</error-code>
+		<location>/WEB-INF/jsp/error.jsp</location>
+	</error-page>
+</web-app>

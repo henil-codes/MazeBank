@@ -40,25 +40,6 @@
                 <% } %>
             </select><br><br>
 
-            <%-- Role and Status are typically set by the system for new registrations,
-                 but if you want to allow selection, uncomment and adjust.
-                 For a customer registration, these would usually be fixed (e.g., CUSTOMER, PENDING). --%>
-            <%--
-            <label for="role">Role:</label>
-            <select id="role" name="role">
-                <% for (UserRole role : UserRole.values()) { %>
-                    <option value="<%= role.name() %>" <%= (role == UserRole.CUSTOMER)? "selected" : "" %>><%= role.name() %></option>
-                <% } %>
-            </select><br><br>
-
-            <label for="status">Status:</label>
-            <select id="status" name="status">
-                <% for (UserStatus status : UserStatus.values()) { %>
-                    <option value="<%= status.name() %>" <%= (status == UserStatus.PENDING)? "selected" : "" %>><%= status.name() %></option>
-                <% } %>
-            </select><br><br>
-            --%>
-
             <input type="submit" value="Register">
         </form>
 

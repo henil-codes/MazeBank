@@ -29,272 +29,318 @@ import java.time.LocalDateTime;
 
 public class TransactionServiceImpl implements TransactionService {
 
-    private AccountDao accountDao;
-    private TransactionDao transactionDao;
-    private LogDao logDao;
-    private TransferDao transferDao;
+	private AccountDao accountDao;
+	private TransactionDao transactionDao;
+	private LogDao logDao;
+	private TransferDao transferDao;
 
-    public TransactionServiceImpl() {
-        this.accountDao = new AccountDaoImpl();
-        this.transactionDao = new TransactionDaoImpl();
-        this.logDao = new LogDaoImpl();
-        this.transferDao = new TransferDaoImpl();
-    }
+	public TransactionServiceImpl() {
+		this.accountDao = new AccountDaoImpl();
+		this.transactionDao = new TransactionDaoImpl();
+		this.logDao = new LogDaoImpl();
+		this.transferDao = new TransferDaoImpl();
+	}
 
-    public TransactionServiceImpl(AccountDao accountDao, TransactionDao transactionDao, LogDao logDao, TransferDao transferDao) {
-        this.accountDao = accountDao;
-        this.transactionDao = transactionDao;
-        this.logDao = logDao;
-        this.transferDao = transferDao;
-    }
+	public TransactionServiceImpl(AccountDao accountDao, TransactionDao transactionDao, LogDao logDao,
+			TransferDao transferDao) {
+		this.accountDao = accountDao;
+		this.transactionDao = transactionDao;
+		this.logDao = logDao;
+		this.transferDao = transferDao;
+	}
 
-    @Override
-    public void processDeposit(TransactionDTO transactionDTO) throws SQLException, ResourceNotFoundException, IllegalArgumentException {
-        Connection conn = null;
-        try {
-            conn = DBConnection.getConnection();
-            conn.setAutoCommit(false); // Start transaction
+	@Override
+	public void processDeposit(TransactionDTO transactionDTO)
+			throws SQLException, ResourceNotFoundException, IllegalArgumentException {
+		Connection conn = null;
+		try {
+			conn = DBConnection.getConnection();
+			conn.setAutoCommit(false); // Start transaction
 
-            Account account = accountDao.getById(transactionDTO.getAccountId()).orElseThrow(
-                () -> new ResourceNotFoundException("Account not found with ID: " + transactionDTO.getAccountId()));
+			// Get account using the SAME connection
+			Account account = accountDao.getById(transactionDTO.getAccountId(), conn).orElseThrow(
+					() -> new ResourceNotFoundException("Account not found with ID: " + transactionDTO.getAccountId()));
 
-            if (account.getStatus() != AccountStatus.ACTIVE) {
-                 throw new IllegalArgumentException("Account is not active and cannot accept deposits.");
-            }
+			// Validate account status (uncomment if needed)
+			// if (account.getStatus() != AccountStatus.ACTIVE) {
+			// throw new IllegalArgumentException("Account is not active and cannot accept
+			// deposits.");
+			// }
 
-            BigDecimal amount = NumberUtils.scaleBigDecimal(transactionDTO.getAmount());
-            if (amount.compareTo(BigDecimal.ZERO) <= 0) {
-                throw new IllegalArgumentException("Deposit amount must be positive.");
-            }
-            if (amount.compareTo(account.getMaxTransactionAmount()) > 0) {
-                throw new IllegalArgumentException("Deposit amount exceeds maximum transaction limit (" + NumberUtils.formatCurrency(account.getMaxTransactionAmount()) + ").");
-            }
+			BigDecimal amount = NumberUtils.scaleBigDecimal(transactionDTO.getAmount());
+			if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+				throw new IllegalArgumentException("Deposit amount must be positive.");
+			}
+			if (amount.compareTo(account.getMaxTransactionAmount()) > 0) {
+				throw new IllegalArgumentException("Deposit amount exceeds maximum transaction limit ("
+						+ NumberUtils.formatCurrency(account.getMaxTransactionAmount()) + ").");
+			}
 
-            BigDecimal newBalance = account.getBalance().add(amount);
-            accountDao.updateAccountBalance(account.getAccountId(), newBalance, conn); // Use account.getAccountId()
+			BigDecimal newBalance = account.getBalance().add(amount);
+			accountDao.updateAccountBalance(account.getAccountId(), newBalance, conn);
 
-            // Record transaction
-            Transaction transaction = new Transaction();
-            transaction.setAccountId(account.getAccountId());
-            transaction.setType(TransactionType.DEPOSIT); // Use enum
-            transaction.setAmount(amount);
-            // transaction_date handled by DB
-            transaction.setDescription(transactionDTO.getDescription());
-            transaction.setStatus(TransactionStatus.COMPLETED); // Use enum
-            transactionDao.add(transaction);
+			// Record transaction using the SAME connection
+			Transaction transaction = new Transaction();
+			transaction.setAccountId(account.getAccountId());
+			transaction.setType(TransactionType.DEPOSIT);
+			transaction.setAmount(amount);
+			transaction.setDescription(transactionDTO.getDescription());
+			transaction.setStatus(TransactionStatus.COMPLETED);
 
-            // Log the action
-            Log log = new Log();
-            log.setUserId(account.getUserId());
-            log.setAction("DEPOSIT");
-            log.setDescription(String.format("Deposit of %s to account %s. New balance: %s.",
-                                            NumberUtils.formatCurrency(amount), account.getAccountNumber(), NumberUtils.formatCurrency(newBalance)));
-            logDao.add(log, conn);
+			// CRITICAL FIX: Use the same connection for transaction insert
+			transactionDao.add(transaction, conn);
 
-            conn.commit(); // Commit transaction
-        } catch (SQLException e) {
-            if (conn != null) {
-                try {
-                    conn.rollback(); // Rollback on error
-                } catch (SQLException rbEx) {
-                    rbEx.printStackTrace(); // Log rollback error
-                }
-            }
-            throw e;
-        } finally {
-            if (conn != null) {
-                try {
-                    conn.setAutoCommit(true); // Reset auto-commit
-                    conn.close();
-                } catch (SQLException closeEx) {
-                    closeEx.printStackTrace(); // Log close error
-                }
-            }
-        }
-    }
+			// Log the action using the SAME connection
+			Log log = new Log();
+			log.setUserId(account.getUserId());
+			log.setAction("DEPOSIT");
+			log.setDescription(
+					String.format("Deposit of %s to account %s. New balance: %s.", NumberUtils.formatCurrency(amount),
+							account.getAccountNumber(), NumberUtils.formatCurrency(newBalance)));
+			logDao.add(log, conn);
 
-    @Override
-    public void processWithdrawal(TransactionDTO transactionDTO) throws SQLException, ResourceNotFoundException, InsufficientFundsException, IllegalArgumentException {
-        Connection conn = null;
-        try {
-            conn = DBConnection.getConnection();
-            conn.setAutoCommit(false); // Start transaction
+			conn.commit(); // Commit transaction
+			System.out.println("Deposit transaction committed successfully!");
 
-            Account account = accountDao.getById(transactionDTO.getAccountId()).orElseThrow(
-                () -> new ResourceNotFoundException("Account not found with ID: " + transactionDTO.getAccountId()));
+		} catch (SQLException e) {
+			System.out.println("SQLException in processDeposit: " + e.getMessage());
+			if (conn != null) {
+				try {
+					conn.rollback(); // Rollback on error
+					System.out.println("Transaction rolled back");
+				} catch (SQLException rbEx) {
+					System.out.println("Rollback failed: " + rbEx.getMessage());
+					rbEx.printStackTrace();
+				}
+			}
+			throw e;
+		} catch (Exception e) {
+			System.out.println("Unexpected exception in processDeposit: " + e.getMessage());
+			if (conn != null) {
+				try {
+					conn.rollback();
+					System.out.println("Transaction rolled back due to unexpected error");
+				} catch (SQLException rbEx) {
+					System.out.println("Rollback failed: " + rbEx.getMessage());
+					rbEx.printStackTrace();
+				}
+			}
+			throw new SQLException("Transaction failed: " + e.getMessage(), e);
+		} finally {
+			if (conn != null) {
+				try {
+					conn.setAutoCommit(true); // Reset auto-commit
+					conn.close();
+					System.out.println("Database connection closed");
+				} catch (SQLException closeEx) {
+					System.out.println("Failed to close connection: " + closeEx.getMessage());
+					closeEx.printStackTrace();
+				}
+			}
+		}
+	}
 
-            if (account.getStatus() != AccountStatus.ACTIVE) {
-                 throw new IllegalArgumentException("Account is not active and cannot process withdrawals.");
-            }
+	@Override
+	public void processWithdrawal(TransactionDTO transactionDTO)
+			throws SQLException, ResourceNotFoundException, InsufficientFundsException, IllegalArgumentException {
+		Connection conn = null;
+		try {
+			conn = DBConnection.getConnection();
+			conn.setAutoCommit(false); // Start transaction
 
-            BigDecimal amount = NumberUtils.scaleBigDecimal(transactionDTO.getAmount());
-            if (amount.compareTo(BigDecimal.ZERO) <= 0) {
-                throw new IllegalArgumentException("Withdrawal amount must be positive.");
-            }
-            if (amount.compareTo(account.getMaxTransactionAmount()) > 0) {
-                throw new IllegalArgumentException("Withdrawal amount exceeds maximum transaction limit (" + NumberUtils.formatCurrency(account.getMaxTransactionAmount()) + ").");
-            }
+			Account account = accountDao.getById(transactionDTO.getAccountId()).orElseThrow(
+					() -> new ResourceNotFoundException("Account not found with ID: " + transactionDTO.getAccountId()));
 
-            BigDecimal availableBalance = account.getBalance().add(account.getOverdraftLimit());
-            if (availableBalance.compareTo(amount) < 0) {
-                throw new InsufficientFundsException("Insufficient funds. Available: " + NumberUtils.formatCurrency(availableBalance) + ". Requested: " + NumberUtils.formatCurrency(amount) + ".");
-            }
+			if (account.getStatus() != AccountStatus.ACTIVE) {
+				throw new IllegalArgumentException("Account is not active and cannot process withdrawals.");
+			}
 
-            BigDecimal newBalance = account.getBalance().subtract(amount);
-            accountDao.updateAccountBalance(account.getAccountId(), newBalance, conn); // Use account.getAccountId()
+			BigDecimal amount = NumberUtils.scaleBigDecimal(transactionDTO.getAmount());
+			if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+				throw new IllegalArgumentException("Withdrawal amount must be positive.");
+			}
+			if (amount.compareTo(account.getMaxTransactionAmount()) > 0) {
+				throw new IllegalArgumentException("Withdrawal amount exceeds maximum transaction limit ("
+						+ NumberUtils.formatCurrency(account.getMaxTransactionAmount()) + ").");
+			}
 
-            // Record transaction
-            Transaction transaction = new Transaction();
-            transaction.setAccountId(account.getAccountId());
-            transaction.setType(TransactionType.WITHDRAWAL); // Use enum
-            transaction.setAmount(amount);
-            // transaction_date handled by DB
-            transaction.setDescription(transactionDTO.getDescription());
-            transaction.setStatus(TransactionStatus.COMPLETED); // Use enum
-            transactionDao.add(transaction);
+			BigDecimal availableBalance = account.getBalance().add(account.getOverdraftLimit());
+			if (availableBalance.compareTo(amount) < 0) {
+				throw new InsufficientFundsException(
+						"Insufficient funds. Available: " + NumberUtils.formatCurrency(availableBalance)
+								+ ". Requested: " + NumberUtils.formatCurrency(amount) + ".");
+			}
 
-            // Log the action
-            Log log = new Log();
-            log.setUserId(account.getUserId());
-            log.setAction("WITHDRAWAL");
-            log.setDescription(String.format("Withdrawal of %s from account %s. New balance: %s.",
-                                            NumberUtils.formatCurrency(amount), account.getAccountNumber(), NumberUtils.formatCurrency(newBalance)));
-            logDao.add(log, conn);
+			BigDecimal newBalance = account.getBalance().subtract(amount);
+			accountDao.updateAccountBalance(account.getAccountId(), newBalance, conn); // Use account.getAccountId()
 
-            conn.commit(); // Commit transaction
-        } catch (SQLException e) {
-            if (conn != null) {
-                try {
-                    conn.rollback();
-                } catch (SQLException rbEx) {
-                    rbEx.printStackTrace();
-                }
-            }
-            throw e;
-        } finally {
-            if (conn != null) {
-                try {
-                    conn.setAutoCommit(true); // Reset auto-commit
-                    conn.close();
-                } catch (SQLException closeEx) {
-                    closeEx.printStackTrace();
-                }
-            }
-        }
-    }
+			// Record transaction
+			Transaction transaction = new Transaction();
+			transaction.setAccountId(account.getAccountId());
+			transaction.setType(TransactionType.WITHDRAWAL); // Use enum
+			transaction.setAmount(amount);
+			// transaction_date handled by DB
+			transaction.setDescription(transactionDTO.getDescription());
+			transaction.setStatus(TransactionStatus.COMPLETED); // Use enum
+			transactionDao.add(transaction, conn);
 
-    @Override
-    public void processTransfer(TransactionDTO transactionDTO) throws SQLException, ResourceNotFoundException, InsufficientFundsException, IllegalArgumentException {
-        if (transactionDTO.getTargetAccountId() == null) {
-            throw new IllegalArgumentException("Target account ID is required for transfers.");
-        }
-        Connection conn = null;
-        try {
-            conn = DBConnection.getConnection();
-            conn.setAutoCommit(false); // Start transaction
+			// Log the action
+			Log log = new Log();
+			log.setUserId(account.getUserId());
+			log.setAction("WITHDRAWAL");
+			log.setDescription(String.format("Withdrawal of %s from account %s. New balance: %s.",
+					NumberUtils.formatCurrency(amount), account.getAccountNumber(),
+					NumberUtils.formatCurrency(newBalance)));
+			logDao.add(log, conn);
 
-            Account sourceAccount = accountDao.getById(transactionDTO.getAccountId()).orElseThrow(
-                () -> new ResourceNotFoundException("Source account not found with ID: " + transactionDTO.getAccountId()));
-            Account targetAccount = accountDao.getById(transactionDTO.getTargetAccountId()).orElseThrow(
-                () -> new ResourceNotFoundException("Target account not found with ID: " + transactionDTO.getTargetAccountId()));
+			conn.commit(); // Commit transaction
+		} catch (SQLException e) {
+			if (conn != null) {
+				try {
+					conn.rollback();
+				} catch (SQLException rbEx) {
+					rbEx.printStackTrace();
+				}
+			}
+			throw e;
+		} finally {
+			if (conn != null) {
+				try {
+					conn.setAutoCommit(true); // Reset auto-commit
+					conn.close();
+				} catch (SQLException closeEx) {
+					closeEx.printStackTrace();
+				}
+			}
+		}
+	}
 
-            if (sourceAccount.getAccountId() == targetAccount.getAccountId()) {
-                throw new IllegalArgumentException("Cannot transfer to the same account.");
-            }
-            if (sourceAccount.getStatus() != AccountStatus.ACTIVE || targetAccount.getStatus() != AccountStatus.ACTIVE) {
-                throw new IllegalArgumentException("Both source and target accounts must be active for a transfer.");
-            }
+	@Override
+	public void processTransfer(TransactionDTO transactionDTO)
+			throws SQLException, ResourceNotFoundException, InsufficientFundsException, IllegalArgumentException {
+		if (transactionDTO.getTargetAccountId() == null) {
+			throw new IllegalArgumentException("Target account ID is required for transfers.");
+		}
+		Connection conn = null;
+		try {
+			conn = DBConnection.getConnection();
+			conn.setAutoCommit(false); // Start transaction
 
-            BigDecimal amount = NumberUtils.scaleBigDecimal(transactionDTO.getAmount());
-            if (amount.compareTo(BigDecimal.ZERO) <= 0) {
-                throw new IllegalArgumentException("Transfer amount must be positive.");
-            }
-            if (amount.compareTo(sourceAccount.getMaxTransactionAmount()) > 0) {
-                throw new IllegalArgumentException("Transfer amount exceeds source account's maximum transaction limit (" + NumberUtils.formatCurrency(sourceAccount.getMaxTransactionAmount()) + ").");
-            }
-            if (amount.compareTo(targetAccount.getMaxTransactionAmount()) > 0) {
-                throw new IllegalArgumentException("Transfer amount exceeds target account's maximum transaction limit (" + NumberUtils.formatCurrency(targetAccount.getMaxTransactionAmount()) + ").");
-            }
+			Account sourceAccount = accountDao.getById(transactionDTO.getAccountId(), conn)
+					.orElseThrow(() -> new ResourceNotFoundException(
+							"Source account not found with ID: " + transactionDTO.getAccountId()));
+			Account targetAccount = accountDao.getById(transactionDTO.getTargetAccountId(), conn)
+					.orElseThrow(() -> new ResourceNotFoundException(
+							"Target account not found with ID: " + transactionDTO.getTargetAccountId()));
 
+			if (sourceAccount.getAccountId() == targetAccount.getAccountId()) {
+				throw new IllegalArgumentException("Cannot transfer to the same account.");
+			}
+			if (sourceAccount.getStatus() != AccountStatus.ACTIVE
+					|| targetAccount.getStatus() != AccountStatus.ACTIVE) {
+				throw new IllegalArgumentException("Both source and target accounts must be active for a transfer.");
+			}
 
-            BigDecimal sourceAvailableBalance = sourceAccount.getBalance().add(sourceAccount.getOverdraftLimit());
-            if (sourceAvailableBalance.compareTo(amount) < 0) {
-                throw new InsufficientFundsException("Insufficient funds in source account. Available: " + NumberUtils.formatCurrency(sourceAvailableBalance) + ". Requested: " + NumberUtils.formatCurrency(amount) + ".");
-            }
+			BigDecimal amount = NumberUtils.scaleBigDecimal(transactionDTO.getAmount());
+			if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+				throw new IllegalArgumentException("Transfer amount must be positive.");
+			}
+			if (amount.compareTo(sourceAccount.getMaxTransactionAmount()) > 0) {
+				throw new IllegalArgumentException(
+						"Transfer amount exceeds source account's maximum transaction limit ("
+								+ NumberUtils.formatCurrency(sourceAccount.getMaxTransactionAmount()) + ").");
+			}
+			if (amount.compareTo(targetAccount.getMaxTransactionAmount()) > 0) {
+				throw new IllegalArgumentException(
+						"Transfer amount exceeds target account's maximum transaction limit ("
+								+ NumberUtils.formatCurrency(targetAccount.getMaxTransactionAmount()) + ").");
+			}
 
-            // Debit source account
-            BigDecimal newSourceBalance = sourceAccount.getBalance().subtract(amount);
-            accountDao.updateAccountBalance(sourceAccount.getAccountId(), newSourceBalance, conn);
+			BigDecimal sourceAvailableBalance = sourceAccount.getBalance().add(sourceAccount.getOverdraftLimit());
+			if (sourceAvailableBalance.compareTo(amount) < 0) {
+				throw new InsufficientFundsException("Insufficient funds in source account. Available: "
+						+ NumberUtils.formatCurrency(sourceAvailableBalance) + ". Requested: "
+						+ NumberUtils.formatCurrency(amount) + ".");
+			}
 
-            // Credit target account
-            BigDecimal newTargetBalance = targetAccount.getBalance().add(amount);
-            accountDao.updateAccountBalance(targetAccount.getAccountId(), newTargetBalance, conn);
+			// Debit source account
+			BigDecimal newSourceBalance = sourceAccount.getBalance().subtract(amount);
+			accountDao.updateAccountBalance(sourceAccount.getAccountId(), newSourceBalance, conn);
 
-            // Record transfer record first to get transfer_id
-            Transfer transfer = new Transfer();
-            transfer.setSourceAccountId(sourceAccount.getAccountId());
-            transfer.setTargetAccountId(targetAccount.getAccountId());
-            transfer.setAmount(amount);
-            // transfer_date handled by DB
-            transfer.setDescription(transactionDTO.getDescription());
-            transfer.setStatus(TransferStatus.COMPLETED); // Default to completed immediately for simple transfers
-            transferDao.add(transfer); // This will populate transfer.getTransferId() if DAO handles generated keys
+			// Credit target account
+			BigDecimal newTargetBalance = targetAccount.getBalance().add(amount);
+			accountDao.updateAccountBalance(targetAccount.getAccountId(), newTargetBalance, conn);
 
-            // It's crucial here that transfer.getTransferId() is populated by the add method.
-            // If not, you'd need a mechanism to get the last inserted ID.
-            // Assuming BaseDaoImpl/TransferDaoImpl's add correctly populates it for auto-increment IDs.
+			// Record transfer record first to get transfer_id
+			Transfer transfer = new Transfer();
+			transfer.setSourceAccountId(sourceAccount.getAccountId());
+			transfer.setTargetAccountId(targetAccount.getAccountId());
+			transfer.setAmount(amount);
+			// transfer_date handled by DB
+			transfer.setDescription(transactionDTO.getDescription());
+			transfer.setStatus(TransferStatus.COMPLETED); // Default to completed immediately for simple transfers
+			transferDao.add(transfer, conn); // This will populate transfer.getTransferId() if DAO handles generated keys
 
-            // Record source transaction
-            Transaction sourceTxn = new Transaction();
-            sourceTxn.setAccountId(sourceAccount.getAccountId());
-            sourceTxn.setType(TransactionType.TRANSFER_OUT);
-            sourceTxn.setAmount(amount);
-            // transaction_date handled by DB
-            sourceTxn.setDescription("Transfer to " + targetAccount.getAccountNumber() + ": " + transactionDTO.getDescription());
-            sourceTxn.setStatus(TransactionStatus.COMPLETED);
-            sourceTxn.setTransferId(transfer.getTransferId()); // Link to transfer record
-            transactionDao.add(sourceTxn);
+			// It's crucial here that transfer.getTransferId() is populated by the add
+			// method.
+			// If not, you'd need a mechanism to get the last inserted ID.
+			// Assuming BaseDaoImpl/TransferDaoImpl's add correctly populates it for
+			// auto-increment IDs.
 
-            // Record target transaction
-            Transaction targetTxn = new Transaction();
-            targetTxn.setAccountId(targetAccount.getAccountId());
-            targetTxn.setType(TransactionType.TRANSFER_IN);
-            targetTxn.setAmount(amount);
-            // transaction_date handled by DB
-            targetTxn.setDescription("Transfer from " + sourceAccount.getAccountNumber() + ": " + transactionDTO.getDescription());
-            targetTxn.setStatus(TransactionStatus.COMPLETED);
-            targetTxn.setTransferId(transfer.getTransferId()); // Link to transfer record
-            transactionDao.add(targetTxn);
+			// Record source transaction
+			Transaction sourceTxn = new Transaction();
+			sourceTxn.setAccountId(sourceAccount.getAccountId());
+			sourceTxn.setType(TransactionType.TRANSFER_OUT);
+			sourceTxn.setAmount(amount);
+			// transaction_date handled by DB
+			sourceTxn.setDescription(
+					"Transfer to " + targetAccount.getAccountNumber() + ": " + transactionDTO.getDescription());
+			sourceTxn.setStatus(TransactionStatus.COMPLETED);
+			sourceTxn.setTransferId(transfer.getTransferId()); // Link to transfer record
+			transactionDao.add(sourceTxn, conn);
 
-            // Log the action
-            Log log = new Log();
-            log.setUserId(sourceAccount.getUserId()); // Log from source user's perspective
-            log.setAction("TRANSFER");
-            log.setDescription(String.format("Transfer of %s from account %s (new balance: %s) to account %s (new balance: %s).",
-                                NumberUtils.formatCurrency(amount), sourceAccount.getAccountNumber(),
-                                NumberUtils.formatCurrency(newSourceBalance), targetAccount.getAccountNumber(),
-                                NumberUtils.formatCurrency(newTargetBalance)));
-            logDao.add(log, conn);
+			// Record target transaction
+			Transaction targetTxn = new Transaction();
+			targetTxn.setAccountId(targetAccount.getAccountId());
+			targetTxn.setType(TransactionType.TRANSFER_IN);
+			targetTxn.setAmount(amount);
+			// transaction_date handled by DB
+			targetTxn.setDescription(
+					"Transfer from " + sourceAccount.getAccountNumber() + ": " + transactionDTO.getDescription());
+			targetTxn.setStatus(TransactionStatus.COMPLETED);
+			targetTxn.setTransferId(transfer.getTransferId()); // Link to transfer record
+			transactionDao.add(targetTxn, conn);
 
-            conn.commit(); // Commit transaction
-        } catch (SQLException e) {
-            if (conn != null) {
-                try {
-                    conn.rollback();
-                } catch (SQLException rbEx) {
-                    rbEx.printStackTrace();
-                }
-            }
-            throw e;
-        } finally {
-            if (conn != null) {
-                try {
-                    conn.setAutoCommit(true);
-                    conn.close();
-                } catch (SQLException closeEx) {
-                    closeEx.printStackTrace();
-                }
-            }
-        }
-    }
+			// Log the action
+			Log log = new Log();
+			log.setUserId(sourceAccount.getUserId()); // Log from source user's perspective
+			log.setAction("TRANSFER");
+			log.setDescription(
+					String.format("Transfer of %s from account %s (new balance: %s) to account %s (new balance: %s).",
+							NumberUtils.formatCurrency(amount), sourceAccount.getAccountNumber(),
+							NumberUtils.formatCurrency(newSourceBalance), targetAccount.getAccountNumber(),
+							NumberUtils.formatCurrency(newTargetBalance)));
+			logDao.add(log, conn);
+
+			conn.commit(); // Commit transaction
+		} catch (SQLException e) {
+			if (conn != null) {
+				try {
+					conn.rollback();
+				} catch (SQLException rbEx) {
+					rbEx.printStackTrace();
+				}
+			}
+			throw e;
+		} finally {
+			if (conn != null) {
+				try {
+					conn.setAutoCommit(true);
+					conn.close();
+				} catch (SQLException closeEx) {
+					closeEx.printStackTrace();
+				}
+			}
+		}
+	}
 }

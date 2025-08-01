@@ -9,6 +9,7 @@ import java.util.Optional;
 
 public interface AccountDao extends BaseDao<Account> {
     List<Account> findAccountsByUserId(int userId) throws SQLException;
+    Optional<Account> getById(int id, Connection conn) throws SQLException;
     Optional<Account> findByAccountNumber(String accountNumber) throws SQLException; // New: Find by account number
     void updateAccountBalance(int accountId, BigDecimal newBalance, Connection conn) throws SQLException;
     // Method to update account balance and status (e.g., for closing)

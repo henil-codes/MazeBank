@@ -24,6 +24,7 @@ public abstract class BaseDaoImpl<T> implements BaseDao<T> {
     protected abstract String getTableName();
     protected abstract String getIdColumnName();
 
+    
     @Override
     public void add(T entity) throws SQLException {
         try (Connection conn = getConnection();
@@ -42,12 +43,31 @@ public abstract class BaseDaoImpl<T> implements BaseDao<T> {
             }
         }
     }
+    
+    public void add(T entity, Connection conn) throws SQLException {
+        try (PreparedStatement stmt = prepareStatementForAdd(conn, entity)) {
+            stmt.executeUpdate();
+        }
+    }
 
     @Override
     public Optional<T> getById(int id) throws SQLException {
         String sql = "SELECT * FROM " + getTableName() + " WHERE " + getIdColumnName() + " = ?";
         try (Connection conn = getConnection();
              PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, id);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return Optional.of(mapResultSetToEntity(rs));
+                }
+            }
+        }
+        return Optional.empty();
+    }
+    
+    public Optional<T> getById(int id, Connection conn) throws SQLException {
+        String sql = "SELECT * FROM " + getTableName() + " WHERE " + getIdColumnName() + " = ?";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setInt(1, id);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {

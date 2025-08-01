@@ -57,8 +57,40 @@ public class FrontControllerServlet extends HttpServlet {
 	@Override
 	protected void doPost(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException {
+
+		// Get all path information for debugging
 		String pathInfo = request.getPathInfo();
-		System.out.println("DO POST Request PathInfo: " + pathInfo);
+		String requestURI = request.getRequestURI();
+		String contextPath = request.getContextPath();
+		String servletPath = request.getServletPath();
+		String queryString = request.getQueryString();
+
+		// Enhanced debug logging
+		System.out.println("=== SERVLET DEBUG INFO ===");
+		System.out.println("Full Request URL: " + request.getRequestURL().toString());
+		System.out.println("Request URI: " + requestURI);
+		System.out.println("Context Path: " + contextPath);
+		System.out.println("Servlet Path: " + servletPath);
+		System.out.println("Path Info: " + pathInfo);
+		System.out.println("Query String: " + queryString);
+		System.out.println("Method: " + request.getMethod());
+
+		// Check if servlet is being called at all
+		System.out.println("FrontControllerServlet.doPost() called successfully!");
+		System.out.println("========================");
+
+		// Ensure pathInfo is not null
+		if (pathInfo == null) {
+			System.out.println("PathInfo is null, checking servlet path...");
+			if (servletPath != null && !servletPath.isEmpty()) {
+				pathInfo = servletPath;
+				System.out.println("Using servlet path as pathInfo: " + pathInfo);
+			} else {
+				System.out.println("Both pathInfo and servletPath are null/empty!");
+				response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid request path");
+				return;
+			}
+		}
 
 		try {
 			// Check for method override (e.g., for PUT/DELETE via POST)
@@ -67,41 +99,56 @@ public class FrontControllerServlet extends HttpServlet {
 				doPut(request, response);
 				return;
 			}
-			// Add other methods (e.g., DELETE) if needed
+
+			System.out.println("Attempting to match pathInfo: '" + pathInfo + "'");
 
 			switch (pathInfo) {
 			case "/login":
+				System.out.println("Matched: /login");
 				handleLogin(request, response);
 				break;
 			case "/accounts/create":
+				System.out.println("Matched: /accounts/create");
 				handleAccountCreation(request, response);
 				break;
 			case "/transactions/deposit":
+				System.out.println("Matched: /transactions/deposit - Handling deposit request");
 				handleDeposit(request, response);
 				break;
 			case "/transactions/withdrawal":
+				System.out.println("Matched: /transactions/withdrawal");
 				handleWithdrawal(request, response);
 				break;
 			case "/transactions/transfer":
+				System.out.println("Matched: /transactions/transfer");
 				handleTransfer(request, response);
 				break;
-			// New cases for admin/customer specific POST actions will go here
+			case "/test":
+				System.out.println("Test endpoint reached!");
+				response.getWriter().write("Servlet is working!");
+				break;
 			default:
-				response.sendError(HttpServletResponse.SC_NOT_FOUND);
+				System.out.println("NO MATCH FOUND for pathInfo: '" + pathInfo + "'");
+				System.out.println(
+						"Available paths are: /login, /accounts/create, /transactions/deposit, /transactions/withdrawal, /transactions/transfer");
+				response.sendError(HttpServletResponse.SC_NOT_FOUND, "Path not found: " + pathInfo);
 				break;
 			}
 		} catch (AuthException | ResourceNotFoundException | InsufficientFundsException e) {
+			System.out.println("Business logic exception: " + e.getMessage());
 			request.setAttribute("errorMessage", e.getMessage());
 			request.getRequestDispatcher("/WEB-INF/jsp/error.jsp").forward(request, response);
 		} catch (IllegalArgumentException e) {
+			System.out.println("Validation exception: " + e.getMessage());
 			request.setAttribute("errorMessage", "Invalid input: " + e.getMessage());
 			request.getRequestDispatcher("/WEB-INF/jsp/error.jsp").forward(request, response);
 		} catch (SQLException e) {
+			System.out.println("Database exception: " + e.getMessage());
 			request.setAttribute("errorMessage", "Database error: " + e.getMessage());
-			e.printStackTrace(); // Log the full stack trace for debugging
-			request.setAttribute("errorMessage", "A database error occurred. Please try again later.");
+			e.printStackTrace();
 			request.getRequestDispatcher("/WEB-INF/jsp/error.jsp").forward(request, response);
 		} catch (Exception e) {
+			System.out.println("Unexpected exception: " + e.getMessage());
 			request.setAttribute("errorMessage", "An unexpected error occurred: " + e.getMessage());
 			e.printStackTrace();
 			request.getRequestDispatcher("/WEB-INF/jsp/error.jsp").forward(request, response);
@@ -227,21 +274,21 @@ public class FrontControllerServlet extends HttpServlet {
 		}
 		response.sendRedirect(request.getContextPath() + "/index.jsp"); // Redirect to login page
 	}
-	
+
 	// Example converter method
 	private User convertToUser(UserResponseDTO dto) {
-	    User user = new User();
-	    user.setUserId(dto.getUserId());
-	    user.setUsername(dto.getUsername());
-	    user.setEmail(dto.getEmail());
-	    user.setFirstName(dto.getFirstName());
-	    user.setLastName(dto.getLastName());
-	    user.setRole(dto.getRole());
-	    
-	    user.setStatus(dto.getStatus());
-	    user.setHolderType(dto.getHolderType());
-	    user.setCreatedAt(dto.getCreatedAt());
-	    return user;
+		User user = new User();
+		user.setUserId(dto.getUserId());
+		user.setUsername(dto.getUsername());
+		user.setEmail(dto.getEmail());
+		user.setFirstName(dto.getFirstName());
+		user.setLastName(dto.getLastName());
+		user.setRole(dto.getRole());
+
+		user.setStatus(dto.getStatus());
+		user.setHolderType(dto.getHolderType());
+		user.setCreatedAt(dto.getCreatedAt());
+		return user;
 	}
 
 	private void handleDashboardRedirect(HttpServletRequest request, HttpServletResponse response)
@@ -253,16 +300,16 @@ public class FrontControllerServlet extends HttpServlet {
 			response.sendRedirect(request.getContextPath() + "/index.jsp"); // Not logged in, redirect to login
 			return;
 		}
-		
+
 		// Safely fetch latest user data
 		UserResponseDTO userResponseDTO = userService.getUserById(loggedInUser.getUserId());
 
 		Optional<User> userOptional;
 		if (userResponseDTO != null) {
-		    User updatedUser = convertToUser(userResponseDTO); // You'll need to implement this conversion method
-		    userOptional = Optional.of(updatedUser);
-		    session.setAttribute("loggedInUser", updatedUser); // Update session with fresh data
-		    
+			User updatedUser = convertToUser(userResponseDTO); // You'll need to implement this conversion method
+			userOptional = Optional.of(updatedUser);
+			session.setAttribute("loggedInUser", updatedUser); // Update session with fresh data
+
 			if (updatedUser.getRole() == UserRole.ADMIN) {
 				// Admin dashboard requires specific data loading
 				List<UserResponseDTO> allUsers = userService.getAllUsers(); // Example data for admin dashboard
@@ -280,19 +327,19 @@ public class FrontControllerServlet extends HttpServlet {
 				request.getRequestDispatcher("/WEB-INF/jsp/unauthorized.jsp").forward(request, response);
 			}
 		} else {
-		    userOptional = Optional.empty();
+			userOptional = Optional.empty();
 		}
-		
-        if (userOptional.isEmpty()) {
-            // This means the user record was not found in the database.
-            // Invalidate the session as it holds invalid user data and redirect to login.
-            if (session != null) {
-                session.invalidate();
-            }
-            request.setAttribute("errorMessage", "Your user account could not be found. Please log in again.");
-            request.getRequestDispatcher("/index.jsp").forward(request, response);
-            return; // Important: return after forwarding/redirecting
-        }
+
+		if (userOptional.isEmpty()) {
+			// This means the user record was not found in the database.
+			// Invalidate the session as it holds invalid user data and redirect to login.
+			if (session != null) {
+				session.invalidate();
+			}
+			request.setAttribute("errorMessage", "Your user account could not be found. Please log in again.");
+			request.getRequestDispatcher("/index.jsp").forward(request, response);
+			return; // Important: return after forwarding/redirecting
+		}
 
 	}
 
@@ -408,14 +455,87 @@ public class FrontControllerServlet extends HttpServlet {
 
 	private void handleDeposit(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException, SQLException, ResourceNotFoundException, InsufficientFundsException {
-		TransactionDTO transactionDTO = new TransactionDTO();
-		transactionDTO.setAccountId(Integer.parseInt(request.getParameter("accountId")));
-		transactionDTO.setAmount(new BigDecimal(request.getParameter("amount")));
-		transactionDTO.setDescription(request.getParameter("description"));
-		transactionDTO.setType(com.mazebank.model.TransactionType.DEPOSIT);
 
-		transactionService.processDeposit(transactionDTO);
-		response.sendRedirect(request.getContextPath() + "/app/dashboard?message=DepositSuccess");
+		// Get current user from session
+		HttpSession session = request.getSession(false);
+		User loggedInUser = (session != null) ? (User) session.getAttribute("loggedInUser") : null;
+
+		if (loggedInUser == null) {
+			response.sendRedirect(request.getContextPath() + "/index.jsp");
+			return;
+		}
+
+		// Debug: Log all parameters received
+		System.out.println("=== DEPOSIT REQUEST PARAMETERS ===");
+		System.out.println("accountId parameter: '" + request.getParameter("accountId") + "'");
+		System.out.println("amount parameter: '" + request.getParameter("amount") + "'");
+		System.out.println("description parameter: '" + request.getParameter("description") + "'");
+		System.out.println("================================");
+
+		try {
+			// Validate and parse account ID
+			String accountIdStr = request.getParameter("accountId");
+			if (accountIdStr == null || accountIdStr.trim().isEmpty()) {
+				throw new IllegalArgumentException("Account ID is required for deposit.");
+			}
+
+			System.out.println("Attempting to parse accountId: '" + accountIdStr.trim() + "'");
+
+			// Check if the string is too long to be an integer
+			if (accountIdStr.trim().length() > 10) {
+				throw new IllegalArgumentException("Account ID is too long. Expected account ID, got: " + accountIdStr);
+			}
+
+			int accountId = Integer.parseInt(accountIdStr.trim());
+			System.out.println("Successfully parsed accountId: " + accountId);
+
+			// Validate and parse amount
+			String amountStr = request.getParameter("amount");
+			if (amountStr == null || amountStr.trim().isEmpty()) {
+				throw new IllegalArgumentException("Amount is required for deposit.");
+			}
+
+			System.out.println("Attempting to parse amount: '" + amountStr.trim() + "'");
+			BigDecimal amount = new BigDecimal(amountStr.trim());
+			System.out.println("Successfully parsed amount: " + amount);
+
+			// Validate amount is positive
+			if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+				throw new IllegalArgumentException("Deposit amount must be greater than zero.");
+			}
+
+			// Verify the account belongs to the current user (unless admin)
+			Account account = accountService.getAccountById(accountId);
+			System.out
+					.println("Found account: ID=" + account.getAccountId() + ", Number=" + account.getAccountNumber());
+
+			if (account.getUserId() != loggedInUser.getUserId() && loggedInUser.getRole() != UserRole.ADMIN) {
+				throw new IllegalArgumentException("Access Denied: You can only deposit to your own accounts.");
+			}
+
+			// Verify account is active
+			if (!account.getStatus().name().equals("ACTIVE")) {
+				throw new IllegalArgumentException("Cannot deposit to inactive account.");
+			}
+
+			// Create transaction DTO
+			TransactionDTO transactionDTO = new TransactionDTO();
+			transactionDTO.setAccountId(accountId);
+			transactionDTO.setAmount(amount);
+			transactionDTO.setDescription(request.getParameter("description")); // Can be null/empty
+			transactionDTO.setType(com.mazebank.model.TransactionType.DEPOSIT);
+
+			// Process the deposit
+			System.out.println("Processing deposit: " + transactionDTO);
+			transactionService.processDeposit(transactionDTO);
+
+			// Redirect with success message
+			response.sendRedirect(request.getContextPath() + "/app/dashboard?message=DepositSuccess");
+
+		} catch (NumberFormatException e) {
+			System.out.println("NumberFormatException details: " + e.getMessage());
+			throw new IllegalArgumentException("Invalid number format: " + e.getMessage());
+		}
 	}
 
 	private void handleWithdrawal(HttpServletRequest request, HttpServletResponse response)

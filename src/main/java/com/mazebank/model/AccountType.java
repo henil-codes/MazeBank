@@ -2,8 +2,7 @@ package com.mazebank.model;
 
 public enum AccountType {
     CHEQUING,
-    SAVINGS,
-    CHECKING; // Assuming CHECKING is equivalent to CHEQUING or a distinct type
+    SAVINGS; 
 
     public static AccountType fromString(String text) {
         for (AccountType at : AccountType.values()) {

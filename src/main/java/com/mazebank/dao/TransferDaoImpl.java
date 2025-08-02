@@ -70,4 +70,43 @@ public class TransferDaoImpl extends BaseDaoImpl<Transfer> implements TransferDa
         stmt.setInt(7, transfer.getTransferId());
         return stmt;
     }
+    
+ // Inside TransferDaoImpl.java
+
+    @Override
+    public void add(Transfer transfer, Connection conn) throws SQLException {
+        String sql = "INSERT INTO transfers (source_account_id, target_account_id, amount, description, status, date_approved) VALUES (?, ?, ?, ?, ?, ?)";
+        PreparedStatement stmt = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+
+        try {
+            stmt.setInt(1, transfer.getSourceAccountId());
+            stmt.setInt(2, transfer.getTargetAccountId());
+            stmt.setBigDecimal(3, transfer.getAmount());
+            stmt.setString(4, transfer.getDescription());
+            stmt.setString(5, transfer.getStatus().name());
+            if (transfer.getDateApproved() != null) {
+                stmt.setTimestamp(6, java.sql.Timestamp.valueOf(transfer.getDateApproved()));
+            } else {
+                stmt.setNull(6, java.sql.Types.TIMESTAMP);
+            }
+
+            int affectedRows = stmt.executeUpdate();
+            if (affectedRows == 0) {
+                throw new SQLException("Creating transfer failed, no rows affected.");
+            }
+
+            try (ResultSet generatedKeys = stmt.getGeneratedKeys()) {
+                if (generatedKeys.next()) {
+                    // This is the CRITICAL part. Set the generated ID back on the object.
+                    transfer.setTransferId(generatedKeys.getInt(1));
+                } else {
+                    throw new SQLException("Creating transfer failed, no ID obtained.");
+                }
+            }
+        } finally {
+            if (stmt != null) {
+                stmt.close();
+            }
+        }
+    }
 }

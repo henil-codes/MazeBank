@@ -6,22 +6,22 @@ import java.time.LocalDateTime;
 public class User implements Serializable {
 	private static final long serialVersionUID = 1L;
 
-    private int userId; // Changed from 'id' to 'userId'
+    private int userId; 
     private String username;
-    private String password; // Changed from 'passwordHash' to 'password' as per SQL
+    private String password; 
     private String email;
     private String firstName;
     private String lastName;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-    private UserRole role; // Changed to enum
-    private UserStatus status; // New enum field
-    private HolderType holderType; // New enum field
+    private UserRole role; 
+    private UserStatus status; 
+    private HolderType holderType; 
 
     public User() {
     }
 
-    // Full constructor (consider omitting password for DTOs)
+    // Constructor 
     public User(int userId, String username, String password, String email, String firstName, String lastName,
                 LocalDateTime createdAt, LocalDateTime updatedAt, UserRole role, UserStatus status, HolderType holderType) {
         this.userId = userId;

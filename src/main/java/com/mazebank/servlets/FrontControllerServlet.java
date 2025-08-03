@@ -9,13 +9,20 @@ import com.mazebank.service.AuthService;
 import com.mazebank.service.AuthServiceImpl;
 import com.mazebank.service.UserService;
 import com.mazebank.service.UserServiceImpl;
+import com.mazebank.service.WireTransferService;
+import com.mazebank.service.WireTransferServiceImpl;
+import com.mazebank.util.DBConnection;
 import com.mazebank.dto.UserResponseDTO;
+import com.mazebank.dto.WireTransferDTO;
 import com.mazebank.dto.AccountCreationDTO;
 import com.mazebank.dto.TransactionDTO;
 import com.mazebank.exception.InsufficientFundsException;
+import com.mazebank.exception.InvalidTransferException;
 import com.mazebank.model.Account;
+import com.mazebank.model.AccountStatus;
 import com.mazebank.model.AccountType;
 import com.mazebank.model.HolderType;
+import com.mazebank.model.TransactionType;
 import com.mazebank.model.UserStatus;
 import com.mazebank.service.AccountService;
 import com.mazebank.service.AccountServiceImpl;
@@ -31,6 +38,7 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
@@ -44,6 +52,7 @@ public class FrontControllerServlet extends HttpServlet {
 	private UserService userService;
 	private AccountService accountService;
 	private TransactionService transactionService;
+	private WireTransferService wireTransferService; 
 
 	@Override
 	public void init() throws ServletException {
@@ -52,6 +61,7 @@ public class FrontControllerServlet extends HttpServlet {
 		userService = new UserServiceImpl();
 		accountService = new AccountServiceImpl();
 		transactionService = new TransactionServiceImpl();
+		wireTransferService = new WireTransferServiceImpl();
 	}
 
 	@Override
@@ -123,6 +133,9 @@ public class FrontControllerServlet extends HttpServlet {
 				System.out.println("Matched: /transactions/transfer");
 				handleTransfer(request, response);
 				break;
+            case "/customer/wire_transfer":
+                handleProcessWireTransfer(request, response);
+                break;
 			case "/admin/users/approve":
 				System.out.println("Matched: /admin/users/approve");
 				handleApproveUser(request, response);
@@ -181,6 +194,9 @@ public class FrontControllerServlet extends HttpServlet {
 			case "/customer/accounts/view":
 				showCustomerAccountDetails(request, response);
 				break;
+            case "/customer/wire_transfer":
+                handleWireTransferPage(request, response);
+                break;
 			// Admin-specific GET routes
 			case "/admin/users":
 				showAdminUserManagementPage(request, response);
@@ -421,6 +437,58 @@ public class FrontControllerServlet extends HttpServlet {
 
 		request.getRequestDispatcher("/WEB-INF/jsp/customer/account_details.jsp").forward(request, response);
 	}
+	
+private void handleWireTransferPage(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        HttpSession session = request.getSession(false);
+        if (session == null || session.getAttribute("loggedInUser") == null) {
+            response.sendRedirect(request.getContextPath() + "/index.jsp");
+            return;
+        }
+        User currentUser = (User) session.getAttribute("loggedInUser");
+        
+        try {
+            List<Account> userAccounts = accountService.getAccountsByUserId(currentUser.getUserId());
+            request.setAttribute("userAccounts", userAccounts);
+            RequestDispatcher dispatcher = request.getRequestDispatcher("/WEB-INF/jsp/customer/wire_transfer.jsp");
+            dispatcher.forward(request, response);
+        } catch (SQLException e) {
+            e.printStackTrace();
+            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Database error.");
+        }
+    }
+    
+    private void handleProcessWireTransfer(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        HttpSession session = request.getSession(false);
+        if (session == null || session.getAttribute("loggedInUser") == null) {
+            response.sendRedirect(request.getContextPath() + "/index.jsp");
+            return;
+        }
+        User currentUser = (User) session.getAttribute("loggedInUser");
+
+        WireTransferDTO transferDto = new WireTransferDTO();
+        transferDto.setUserId(currentUser.getUserId());
+        transferDto.setSenderAccountNumber(request.getParameter("senderAccountNumber"));
+        transferDto.setRecipientAccountNumber(request.getParameter("recipientAccountNumber"));
+        transferDto.setDescription(request.getParameter("description"));
+        try {
+            transferDto.setAmount(new BigDecimal(request.getParameter("amount")));
+        } catch (NumberFormatException e) {
+            response.sendRedirect(request.getContextPath() + "/app/customer/wire_transfer?error=Invalid amount format.");
+            return;
+        }
+
+        try {
+            wireTransferService.processWireTransfer(transferDto);
+            response.sendRedirect(request.getContextPath() + "/app/dashboard?message=WireTransferSuccessful");
+        } catch (InvalidTransferException | ResourceNotFoundException e) {
+            response.sendRedirect(request.getContextPath() + "/app/customer/wire_transfer?error=" + e.getMessage());
+        } catch (SQLException e) {
+            e.printStackTrace();
+            response.sendRedirect(request.getContextPath() + "/app/customer/wire_transfer?error=Database error. Please try again.");
+        }
+    }
 
 	// --- Admin Functionality Handlers (GET) ---
 
@@ -515,113 +583,149 @@ public class FrontControllerServlet extends HttpServlet {
 	private void handleDeposit(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException, SQLException, ResourceNotFoundException, InsufficientFundsException {
 
-		// Get current user from session
 		HttpSession session = request.getSession(false);
 		User loggedInUser = (session != null) ? (User) session.getAttribute("loggedInUser") : null;
-
 		if (loggedInUser == null) {
 			response.sendRedirect(request.getContextPath() + "/index.jsp");
 			return;
 		}
 
-		// Debug: Log all parameters received
-		System.out.println("=== DEPOSIT REQUEST PARAMETERS ===");
-		System.out.println("accountId parameter: '" + request.getParameter("accountId") + "'");
-		System.out.println("amount parameter: '" + request.getParameter("amount") + "'");
-		System.out.println("description parameter: '" + request.getParameter("description") + "'");
-		System.out.println("================================");
+		String accountNumber = request.getParameter("accountNumber");
+		String amountStr = request.getParameter("amount");
+
+		if (accountNumber == null || accountNumber.trim().isEmpty() || amountStr == null || amountStr.trim().isEmpty()) {
+			throw new IllegalArgumentException("Account number and amount are required for deposit.");
+		}
 
 		try {
-			// Validate and parse account ID
-			String accountIdStr = request.getParameter("accountId");
-			if (accountIdStr == null || accountIdStr.trim().isEmpty()) {
-				throw new IllegalArgumentException("Account ID is required for deposit.");
-			}
-
-			System.out.println("Attempting to parse accountId: '" + accountIdStr.trim() + "'");
-
-			// Check if the string is too long to be an integer
-			if (accountIdStr.trim().length() > 10) {
-				throw new IllegalArgumentException("Account ID is too long. Expected account ID, got: " + accountIdStr);
-			}
-
-			int accountId = Integer.parseInt(accountIdStr.trim());
-			System.out.println("Successfully parsed accountId: " + accountId);
-
-			// Validate and parse amount
-			String amountStr = request.getParameter("amount");
-			if (amountStr == null || amountStr.trim().isEmpty()) {
-				throw new IllegalArgumentException("Amount is required for deposit.");
-			}
-
-			System.out.println("Attempting to parse amount: '" + amountStr.trim() + "'");
-			BigDecimal amount = new BigDecimal(amountStr.trim());
-			System.out.println("Successfully parsed amount: " + amount);
-
-			// Validate amount is positive
-			if (amount.compareTo(BigDecimal.ZERO) <= 0) {
-				throw new IllegalArgumentException("Deposit amount must be greater than zero.");
-			}
-
-			// Verify the account belongs to the current user (unless admin)
-			Account account = accountService.getAccountById(accountId);
-			System.out
-					.println("Found account: ID=" + account.getAccountId() + ", Number=" + account.getAccountNumber());
-
+			Account account = accountService.getAccountByAccountNumber(accountNumber);
+			
+			// Authorization check
 			if (account.getUserId() != loggedInUser.getUserId() && loggedInUser.getRole() != UserRole.ADMIN) {
 				throw new IllegalArgumentException("Access Denied: You can only deposit to your own accounts.");
 			}
-
-			// Verify account is active
-			if (!account.getStatus().name().equals("ACTIVE")) {
-				throw new IllegalArgumentException("Cannot deposit to inactive account.");
+			
+			if (account.getStatus() != AccountStatus.ACTIVE) {
+				throw new IllegalArgumentException("Cannot deposit to an inactive account.");
+			}
+			
+			BigDecimal amount = new BigDecimal(amountStr);
+			if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+				throw new IllegalArgumentException("Deposit amount must be positive.");
 			}
 
-			// Create transaction DTO
 			TransactionDTO transactionDTO = new TransactionDTO();
-			transactionDTO.setAccountId(accountId);
+			transactionDTO.setAccountId(account.getAccountId());
 			transactionDTO.setAmount(amount);
-			transactionDTO.setDescription(request.getParameter("description")); // Can be null/empty
-			transactionDTO.setType(com.mazebank.model.TransactionType.DEPOSIT);
+			transactionDTO.setDescription(request.getParameter("description"));
+			transactionDTO.setType(TransactionType.DEPOSIT);
 
-			// Process the deposit
-			System.out.println("Processing deposit: " + transactionDTO);
 			transactionService.processDeposit(transactionDTO);
-
-			// Redirect with success message
 			response.sendRedirect(request.getContextPath() + "/app/dashboard?message=DepositSuccess");
-
 		} catch (NumberFormatException e) {
-			System.out.println("NumberFormatException details: " + e.getMessage());
-			throw new IllegalArgumentException("Invalid number format: " + e.getMessage());
+			throw new IllegalArgumentException("Invalid amount format.");
 		}
 	}
 
 	private void handleWithdrawal(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException, SQLException, ResourceNotFoundException, InsufficientFundsException {
-		TransactionDTO transactionDTO = new TransactionDTO();
-		transactionDTO.setAccountId(Integer.parseInt(request.getParameter("accountId")));
-		transactionDTO.setAmount(new BigDecimal(request.getParameter("amount")));
-		transactionDTO.setDescription(request.getParameter("description"));
-		transactionDTO.setType(com.mazebank.model.TransactionType.WITHDRAWAL);
 
-		transactionService.processWithdrawal(transactionDTO);
-		response.sendRedirect(request.getContextPath() + "/app/dashboard?message=WithdrawalSuccess");
+		HttpSession session = request.getSession(false);
+		User loggedInUser = (session != null) ? (User) session.getAttribute("loggedInUser") : null;
+		if (loggedInUser == null) {
+			response.sendRedirect(request.getContextPath() + "/index.jsp");
+			return;
+		}
+
+		String accountNumber = request.getParameter("accountNumber");
+		String amountStr = request.getParameter("amount");
+
+		if (accountNumber == null || accountNumber.trim().isEmpty() || amountStr == null || amountStr.trim().isEmpty()) {
+			throw new IllegalArgumentException("Account number and amount are required for withdrawal.");
+		}
+
+		try {
+			Account account = accountService.getAccountByAccountNumber(accountNumber);
+			
+			// Authorization check
+			if (account.getUserId() != loggedInUser.getUserId() && loggedInUser.getRole() != UserRole.ADMIN) {
+				throw new IllegalArgumentException("Access Denied: You can only withdraw from your own accounts.");
+			}
+			
+			if (account.getStatus() != AccountStatus.ACTIVE) {
+				throw new IllegalArgumentException("Cannot withdraw from an inactive account.");
+			}
+			
+			BigDecimal amount = new BigDecimal(amountStr);
+			if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+				throw new IllegalArgumentException("Withdrawal amount must be positive.");
+			}
+			
+			TransactionDTO transactionDTO = new TransactionDTO();
+			transactionDTO.setAccountId(account.getAccountId());
+			transactionDTO.setAmount(amount);
+			transactionDTO.setDescription(request.getParameter("description"));
+			transactionDTO.setType(TransactionType.WITHDRAWAL);
+
+			transactionService.processWithdrawal(transactionDTO);
+			response.sendRedirect(request.getContextPath() + "/app/dashboard?message=WithdrawalSuccess");
+		} catch (NumberFormatException e) {
+			throw new IllegalArgumentException("Invalid amount format.");
+		}
 	}
 
 	private void handleTransfer(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException, SQLException, ResourceNotFoundException, InsufficientFundsException {
-		TransactionDTO transactionDTO = new TransactionDTO();
-		transactionDTO.setAccountId(Integer.parseInt(request.getParameter("sourceAccountId")));
-		transactionDTO.setTargetAccountId(Integer.parseInt(request.getParameter("targetAccountId")));
-		transactionDTO.setAmount(new BigDecimal(request.getParameter("amount")));
-		transactionDTO.setDescription(request.getParameter("description"));
-		transactionDTO.setType(com.mazebank.model.TransactionType.TRANSFER_OUT);
 
-		transactionService.processTransfer(transactionDTO);
-		response.sendRedirect(request.getContextPath() + "/app/dashboard?message=TransferSuccess");
+		HttpSession session = request.getSession(false);
+		User loggedInUser = (session != null) ? (User) session.getAttribute("loggedInUser") : null;
+		if (loggedInUser == null) {
+			response.sendRedirect(request.getContextPath() + "/index.jsp");
+			return;
+		}
+
+		String sourceAccountNumber = request.getParameter("sourceAccountNumber");
+		String targetAccountNumber = request.getParameter("targetAccountNumber");
+		String amountStr = request.getParameter("amount");
+
+		if (sourceAccountNumber == null || sourceAccountNumber.trim().isEmpty() || targetAccountNumber == null || targetAccountNumber.trim().isEmpty() || amountStr == null || amountStr.trim().isEmpty()) {
+			throw new IllegalArgumentException("Source account number, target account number, and amount are required for a transfer.");
+		}
+
+		try {
+			Account sourceAccount = accountService.getAccountByAccountNumber(sourceAccountNumber);
+			Account targetAccount = accountService.getAccountByAccountNumber(targetAccountNumber);
+
+			// Authorization check for source account
+			if (sourceAccount.getUserId() != loggedInUser.getUserId() && loggedInUser.getRole() != UserRole.ADMIN) {
+				throw new IllegalArgumentException("Access Denied: You can only transfer from your own accounts.");
+			}
+			
+			if (sourceAccount.getStatus() != AccountStatus.ACTIVE) {
+				throw new IllegalArgumentException("Cannot transfer from an inactive source account.");
+			}
+			if (targetAccount.getStatus() != AccountStatus.ACTIVE) {
+				throw new IllegalArgumentException("Cannot transfer to an inactive target account.");
+			}
+
+			BigDecimal amount = new BigDecimal(amountStr);
+			if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+				throw new IllegalArgumentException("Transfer amount must be positive.");
+			}
+			
+			TransactionDTO transactionDTO = new TransactionDTO();
+			transactionDTO.setAccountId(sourceAccount.getAccountId()); // This is the source account
+			transactionDTO.setTargetAccountId(targetAccount.getAccountId());
+			transactionDTO.setAmount(amount);
+			transactionDTO.setDescription(request.getParameter("description"));
+			transactionDTO.setType(TransactionType.TRANSFER_OUT);
+
+			transactionService.processTransfer(transactionDTO);
+			response.sendRedirect(request.getContextPath() + "/app/dashboard?message=TransferSuccess");
+		} catch (NumberFormatException e) {
+			throw new IllegalArgumentException("Invalid amount format.");
+		}
 	}
-
 	private void showCloseAccountForm(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException, SQLException, ResourceNotFoundException {
 		String accountIdStr = request.getParameter("accountId");

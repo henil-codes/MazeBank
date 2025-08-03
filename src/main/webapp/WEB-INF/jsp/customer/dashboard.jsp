@@ -63,6 +63,11 @@
 		<%
 		}
 		%>
+		
+		<%-- Add the new link for wire transfer --%>
+        <h3>Quick Actions</h3>
+        <a href="${pageContext.request.contextPath}/app/customer/wire_transfer" class="button">Perform Wire Transfer</a>
+        
 
 		<h3>Your Accounts</h3>
 		<%

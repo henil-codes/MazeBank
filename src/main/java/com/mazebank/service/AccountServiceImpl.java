@@ -131,10 +131,12 @@ public class AccountServiceImpl implements AccountService {
 				.orElseThrow(() -> new ResourceNotFoundException("Account not found with number: " + accountNumber));
 	}
 
-	@Override
-	public List<Account> getAccountsByUserId(int userId) throws SQLException {
-		return accountDao.findAccountsByUserId(userId);
-	}
+    @Override
+    public List<Account> getAccountsByUserId(int userId) throws SQLException {
+        try (Connection conn = DBConnection.getConnection()) {
+            return accountDao.findAccountsByUserId(userId);
+        }
+    }
 
 	@Override
 	public List<Account> getAllAccounts() throws SQLException {

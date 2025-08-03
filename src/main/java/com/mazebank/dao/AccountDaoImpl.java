@@ -3,6 +3,8 @@ package com.mazebank.dao;
 import com.mazebank.model.Account;
 import com.mazebank.model.AccountStatus;
 import com.mazebank.model.AccountType;
+import com.mazebank.util.DBConnection;
+
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -89,9 +91,15 @@ public class AccountDaoImpl extends BaseDaoImpl<Account> implements AccountDao {
 
     @Override
     public Optional<Account> findByAccountNumber(String accountNumber) throws SQLException {
+        try (Connection conn = DBConnection.getConnection()) {
+            return findByAccountNumber(accountNumber, conn);
+        }
+    }
+
+    @Override
+    public Optional<Account> findByAccountNumber(String accountNumber, Connection conn) throws SQLException {
         String sql = "SELECT * FROM " + getTableName() + " WHERE account_number = ?";
-        try (Connection conn = getConnection();
-             PreparedStatement stmt = conn.prepareStatement(sql)) {
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
             stmt.setString(1, accountNumber);
             try (ResultSet rs = stmt.executeQuery()) {
                 if (rs.next()) {

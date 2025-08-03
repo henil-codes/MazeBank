@@ -1,5 +1,6 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ page import="com.mazebank.dto.UserResponseDTO" %>
+<%@ page import="com.mazebank.model.UserStatus" %>
 <%@ page import="java.util.List" %>
 <!DOCTYPE html>
 <html>
@@ -53,6 +54,13 @@
                             <td>
                                 <%-- Example actions: View, Edit, Delete (requires more servlets/logic) --%>
                                 <a href="#">View</a> | <a href="#">Edit</a> | <a href="#">Delete</a>
+                                <% if (user.getStatus() == UserStatus.PENDING) { %>
+                                    |
+                                    <form action="${pageContext.request.contextPath}/app/admin/users/approve" method="post" style="display:inline;">
+                                        <input type="hidden" name="userId" value="<%= user.getUserId() %>">
+                                        <button type="submit" class="approve-btn">Approve</button>
+                                    </form>
+                                <% } %>
                             </td>
                         </tr>
                     <% } %>

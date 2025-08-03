@@ -14,4 +14,5 @@ public interface UserService {
     List<UserResponseDTO> getAllUsers() throws SQLException;
     void updateUser(User user) throws SQLException, ResourceNotFoundException;
     void deleteUser(int userId) throws SQLException, ResourceNotFoundException;
+    void approveUser(int userId) throws SQLException, ResourceNotFoundException;
 }

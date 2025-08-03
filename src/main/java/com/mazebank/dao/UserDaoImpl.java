@@ -89,4 +89,15 @@ public class UserDaoImpl extends BaseDaoImpl<User> implements UserDao {
         }
         return Optional.empty();
     }
+    
+    @Override
+    public void updateUserStatus(int userId, UserStatus newStatus) throws SQLException {
+        String sql = "UPDATE Users SET status = ? WHERE user_id = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setString(1, newStatus.name());
+            stmt.setInt(2, userId);
+            stmt.executeUpdate();
+        }
+    }
 }

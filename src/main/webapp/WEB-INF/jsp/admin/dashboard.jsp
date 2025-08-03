@@ -9,17 +9,17 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Dashboard</title>
+<title>Admin Dashboard</title>
 <link rel="stylesheet" type="text/css"
-	href="${pageContext.request.contextPath}/css/dashboard.css">
+	href="${pageContext.request.contextPath}/css/style.css">
 </head>
 <body>
 	<%@ include file="../fragments/_sidebar.jspf"%>
+	
 	<div class="container">
 		<h2>Welcome to Your Dashboard!</h2>
-		<%--User loggedInUser = (User) session.getAttribute("loggedInUser"); --%>
 		<%
-		if (loggedInUser != null) {																																																	
+		if (loggedInUser != null) {
 		%>
 		<p>
 			Hello,

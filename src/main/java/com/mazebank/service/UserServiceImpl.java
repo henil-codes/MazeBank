@@ -102,6 +102,15 @@ public class UserServiceImpl implements UserService {
         }
         userDao.delete(userId);
     }
+    
+    @Override
+    public void approveUser(int userId) throws SQLException, ResourceNotFoundException {
+        Optional<User> userOptional = userDao.getById(userId);
+        if (userOptional.isEmpty()) {
+            throw new ResourceNotFoundException("User with ID " + userId + " not found.");
+        }
+        userDao.updateUserStatus(userId, UserStatus.ACTIVE);
+    }
 
     private UserResponseDTO mapUserToUserResponseDTO(User user) {
         UserResponseDTO dto = new UserResponseDTO();

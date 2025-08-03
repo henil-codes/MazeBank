@@ -5,7 +5,6 @@
 <%@ page import="com.mazebank.model.Account"%>
 <%@ page import="com.mazebank.model.AccountType"%>
 <%@ page import="com.mazebank.util.NumberUtils"%>
-<%@ include file="../fragments/_sidebar.jspf"%>
 <!DOCTYPE html>
 <html>
 <head>
@@ -16,10 +15,10 @@
 </head>
 <body>
 	<%-- Include the sidebar fragment --%>
+	<%@ include file="../fragments/_sidebar.jspf"%>
 
 	<div class="main-content">
 		<h2>Your Dashboard</h2>
-		<%-- REMOVED DUPLICATE DECLARATION HERE --%>
 		<p>
 			Hello,
 			<%=loggedInUser.getFirstName()%>

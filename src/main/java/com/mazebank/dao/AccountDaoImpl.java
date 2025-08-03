@@ -101,6 +101,21 @@ public class AccountDaoImpl extends BaseDaoImpl<Account> implements AccountDao {
         }
         return Optional.empty();
     }
+    
+    @Override
+    public boolean hasAccountOfType(int userId, String accountType, Connection conn) throws SQLException {
+        String sql = "SELECT COUNT(*) FROM Accounts WHERE user_id = ? AND account_type = ?";
+        try (PreparedStatement stmt = conn.prepareStatement(sql)) {
+            stmt.setInt(1, userId);
+            stmt.setString(2, accountType);
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return rs.getInt(1) > 0;
+                }
+            }
+        }
+        return false;
+    }
 
     @Override
     public void updateAccountBalance(int accountId, BigDecimal newBalance, Connection conn) throws SQLException {

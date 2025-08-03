@@ -12,6 +12,7 @@ public interface AccountDao extends BaseDao<Account> {
     Optional<Account> getById(int id, Connection conn) throws SQLException;
     Optional<Account> findByAccountNumber(String accountNumber) throws SQLException; // New: Find by account number
     void updateAccountBalance(int accountId, BigDecimal newBalance, Connection conn) throws SQLException;
+    boolean hasAccountOfType(int userId, String accountType, Connection conn) throws SQLException;
     // Method to update account balance and status (e.g., for closing)
     void updateAccountBalanceAndStatus(int accountId, BigDecimal newBalance, String status, Connection conn) throws SQLException;
 }

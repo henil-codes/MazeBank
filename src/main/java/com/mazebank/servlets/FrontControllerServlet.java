@@ -123,10 +123,10 @@ public class FrontControllerServlet extends HttpServlet {
 				System.out.println("Matched: /transactions/transfer");
 				handleTransfer(request, response);
 				break;
-            case "/admin/users/approve":
-                System.out.println("Matched: /admin/users/approve");
-                handleApproveUser(request, response);
-                break;
+			case "/admin/users/approve":
+				System.out.println("Matched: /admin/users/approve");
+				handleApproveUser(request, response);
+				break;
 			case "/test":
 				System.out.println("Test endpoint reached!");
 				response.getWriter().write("Servlet is working!");
@@ -176,8 +176,8 @@ public class FrontControllerServlet extends HttpServlet {
 				showCustomerPaymentsPage(request, response);
 				break;
 			case "/customer/accounts":
-			    showCustomerAccounts(request, response);
-			    break;
+				showCustomerAccounts(request, response);
+				break;
 			case "/customer/accounts/view":
 				showCustomerAccountDetails(request, response);
 				break;
@@ -305,13 +305,13 @@ public class FrontControllerServlet extends HttpServlet {
 			response.sendRedirect(request.getContextPath() + "/index.jsp"); // Not logged in, redirect to login
 			return;
 		}
-		
-        // Check if the user's status is PENDING
-        if (loggedInUser.getStatus() == UserStatus.PENDING) {
-            RequestDispatcher dispatcher = request.getRequestDispatcher("/WEB-INF/jsp/customer/account_pending.jsp");
-            dispatcher.forward(request, response);
-            return;
-        }
+
+		// Check if the user's status is PENDING
+		if (loggedInUser.getStatus() == UserStatus.PENDING) {
+			RequestDispatcher dispatcher = request.getRequestDispatcher("/WEB-INF/jsp/customer/account_pending.jsp");
+			dispatcher.forward(request, response);
+			return;
+		}
 
 		// Safely fetch latest user data
 		UserResponseDTO userResponseDTO = userService.getUserById(loggedInUser.getUserId());
@@ -372,22 +372,22 @@ public class FrontControllerServlet extends HttpServlet {
 
 		request.getRequestDispatcher("/WEB-INF/jsp/customer/payments.jsp").forward(request, response);
 	}
-	
+
 	private void showCustomerAccounts(HttpServletRequest request, HttpServletResponse response)
-	        throws ServletException, IOException, SQLException, ResourceNotFoundException {
-	    HttpSession session = request.getSession(false);
-	    User loggedInUser = (session != null) ? (User) session.getAttribute("loggedInUser") : null;
-	    if (loggedInUser == null) {
-	        response.sendRedirect(request.getContextPath() + "/index.jsp");
-	        return;
-	    }
+			throws ServletException, IOException, SQLException, ResourceNotFoundException {
+		HttpSession session = request.getSession(false);
+		User loggedInUser = (session != null) ? (User) session.getAttribute("loggedInUser") : null;
+		if (loggedInUser == null) {
+			response.sendRedirect(request.getContextPath() + "/index.jsp");
+			return;
+		}
 
-	    // Fetch and set the list of all accounts for the current user
-	    List<Account> userAccounts = accountService.getAccountsByUserId(loggedInUser.getUserId());
-	    request.setAttribute("userAccounts", userAccounts);
+		// Fetch and set the list of all accounts for the current user
+		List<Account> userAccounts = accountService.getAccountsByUserId(loggedInUser.getUserId());
+		request.setAttribute("userAccounts", userAccounts);
 
-	    // Forward to a new JSP that lists all accounts
-	    request.getRequestDispatcher("/WEB-INF/jsp/customer/accounts_list.jsp").forward(request, response);
+		// Forward to a new JSP that lists all accounts
+		request.getRequestDispatcher("/WEB-INF/jsp/customer/accounts_list.jsp").forward(request, response);
 	}
 
 	private void showCustomerAccountDetails(HttpServletRequest request, HttpServletResponse response)
@@ -439,29 +439,30 @@ public class FrontControllerServlet extends HttpServlet {
 		request.setAttribute("allAccounts", allAccounts);
 		request.getRequestDispatcher("/WEB-INF/jsp/admin/account_management.jsp").forward(request, response);
 	}
-	
-    private void handleApproveUser(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException, SQLException, ResourceNotFoundException, IllegalArgumentException {
-        // Ensure only an admin can perform this action (redundant with AuthFilter, but good practice)
-        HttpSession session = request.getSession(false);
-        User loggedInUser = (session != null) ? (User) session.getAttribute("loggedInUser") : null;
-        
-        if (loggedInUser == null || loggedInUser.getRole() != UserRole.ADMIN) {
-            response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access Denied. Admins only.");
-            return;
-        }
 
-        String userIdStr = request.getParameter("userId");
-        if (userIdStr == null || userIdStr.trim().isEmpty()) {
-            throw new IllegalArgumentException("User ID is required to approve an account.");
-        }
-        
-        int userId = Integer.parseInt(userIdStr);
-        userService.approveUser(userId);
+	private void handleApproveUser(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException, SQLException, ResourceNotFoundException, IllegalArgumentException {
+		// Ensure only an admin can perform this action (redundant with AuthFilter, but
+		// good practice)
+		HttpSession session = request.getSession(false);
+		User loggedInUser = (session != null) ? (User) session.getAttribute("loggedInUser") : null;
 
-        // Redirect back to the user management page with a success message
-        response.sendRedirect(request.getContextPath() + "/app/admin/users?message=UserApproved");
-    }
+		if (loggedInUser == null || loggedInUser.getRole() != UserRole.ADMIN) {
+			response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access Denied. Admins only.");
+			return;
+		}
+
+		String userIdStr = request.getParameter("userId");
+		if (userIdStr == null || userIdStr.trim().isEmpty()) {
+			throw new IllegalArgumentException("User ID is required to approve an account.");
+		}
+
+		int userId = Integer.parseInt(userIdStr);
+		userService.approveUser(userId);
+
+		// Redirect back to the user management page with a success message
+		response.sendRedirect(request.getContextPath() + "/app/admin/users?message=UserApproved");
+	}
 
 	// --- Common Account/Transaction Handlers (POST/PUT) ---
 
@@ -501,6 +502,12 @@ public class FrontControllerServlet extends HttpServlet {
 				? new BigDecimal(maxTransactionAmountStr)
 				: BigDecimal.ZERO);
 
+		if (accountService.hasAccountOfType(currentUser.getUserId(), accountDto.getAccountType().name())) {
+			// Redirect with an error message parameter in the URL.
+			response.sendRedirect(request.getContextPath() + "/app/dashboard?error=An account of type "
+					+ accountDto.getAccountType().name() + " already exists.");
+			throw new IllegalArgumentException("Same Account type already exists.");
+		}
 		accountService.createAccount(accountDto);
 		response.sendRedirect(request.getContextPath() + "/app/dashboard?message=AccountCreated");
 	}

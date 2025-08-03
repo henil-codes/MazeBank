@@ -305,6 +305,13 @@ public class FrontControllerServlet extends HttpServlet {
 			response.sendRedirect(request.getContextPath() + "/index.jsp"); // Not logged in, redirect to login
 			return;
 		}
+		
+        // Check if the user's status is PENDING
+        if (loggedInUser.getStatus() == UserStatus.PENDING) {
+            RequestDispatcher dispatcher = request.getRequestDispatcher("/WEB-INF/jsp/customer/account_pending.jsp");
+            dispatcher.forward(request, response);
+            return;
+        }
 
 		// Safely fetch latest user data
 		UserResponseDTO userResponseDTO = userService.getUserById(loggedInUser.getUserId());

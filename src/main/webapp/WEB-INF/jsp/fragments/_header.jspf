@@ -1,0 +1,14 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
+<div class="header">
+    <a href="${pageContext.request.contextPath}/index.jsp">
+        <img src="${pageContext.request.contextPath}/img/mazebank_logo.png" alt="Maze Bank Logo" class="logo">
+    </a>
+    <nav>
+        <ul>
+            <li><a href="${pageContext.request.contextPath}/services.jsp">Services</a></li>
+            <li><a href="${pageContext.request.contextPath}/about.jsp">About Us</a></li>
+            <li><a href="${pageContext.request.contextPath}/contact.jsp">Contact Us</a></li>
+        </ul>
+    </nav>
+    <a href="${pageContext.request.contextPath}/app/login" class="btn">Sign On</a>
+</div>

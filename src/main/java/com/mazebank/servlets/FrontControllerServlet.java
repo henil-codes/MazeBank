@@ -11,7 +11,6 @@ import com.mazebank.service.UserService;
 import com.mazebank.service.UserServiceImpl;
 import com.mazebank.service.WireTransferService;
 import com.mazebank.service.WireTransferServiceImpl;
-import com.mazebank.util.DBConnection;
 import com.mazebank.dto.UserResponseDTO;
 import com.mazebank.dto.WireTransferDTO;
 import com.mazebank.dto.AccountCreationDTO;
@@ -29,16 +28,15 @@ import com.mazebank.service.AccountServiceImpl;
 import com.mazebank.service.TransactionService;
 import com.mazebank.service.TransactionServiceImpl;
 
-import javax.servlet.RequestDispatcher;
-import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet; // Keep if you use @WebServlet for other servlets
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
+import jakarta.servlet.RequestDispatcher;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet; // Keep if you use @WebServlet for other servlets
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.math.BigDecimal;
-import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.Optional;
@@ -181,6 +179,10 @@ public class FrontControllerServlet extends HttpServlet {
 			case "/dashboard":
 				handleDashboardRedirect(request, response); // New handler for role-based dashboard
 				break;
+            case "/login": 
+                RequestDispatcher login = request.getRequestDispatcher("/WEB-INF/jsp/login.jsp");
+                login.forward(request, response);
+                break;
 			case "/logout":
 				handleLogout(request, response);
 				break;
@@ -204,6 +206,24 @@ public class FrontControllerServlet extends HttpServlet {
 			case "/admin/accounts":
 				showAdminAccountManagementPage(request, response);
 				break;
+				
+			// new admin pages
+            case "/admin/accounts/create": 
+                RequestDispatcher accountCreate = request.getRequestDispatcher("/WEB-INF/jsp/admin/account_create.jsp");
+                accountCreate.forward(request, response);
+                break;
+            case "/admin/accounts/edit": 
+                RequestDispatcher accountEdit= request.getRequestDispatcher("/WEB-INF/jsp/admin/account_edit.jsp");
+                accountEdit.forward(request, response);
+                break;
+            case "/admin/user/create": 
+                RequestDispatcher adminUserCreate= request.getRequestDispatcher("/WEB-INF/jsp/admin/user_create.jsp");
+                adminUserCreate.forward(request, response);
+                break;
+            case "/admin/user/edit": 
+                RequestDispatcher adminUserEdit= request.getRequestDispatcher("/WEB-INF/jsp/admin/user_edit.jsp");
+                adminUserEdit.forward(request, response);
+                break;
 			case "/accounts/close": // This is a GET to show the form, actual close is PUT
 				showCloseAccountForm(request, response);
 				break;
@@ -274,7 +294,7 @@ public class FrontControllerServlet extends HttpServlet {
 		UserLoginDTO loginDTO = new UserLoginDTO();
 		loginDTO.setUsername(username);
 		loginDTO.setPassword(password);
-
+		
 		Optional<User> authenticatedUser = authService.authenticate(loginDTO);
 
 		if (authenticatedUser.isPresent()) {
@@ -284,7 +304,7 @@ public class FrontControllerServlet extends HttpServlet {
 			response.sendRedirect(request.getContextPath() + "/app/dashboard"); // Redirect to dashboard entry point
 		} else {
 			request.setAttribute("errorMessage", "Invalid username or password.");
-			request.getRequestDispatcher("/index.jsp").forward(request, response);
+			request.getRequestDispatcher("/app/login").forward(request, response);
 		}
 	}
 
@@ -293,7 +313,7 @@ public class FrontControllerServlet extends HttpServlet {
 		if (session != null) {
 			session.invalidate(); // Invalidate the session
 		}
-		response.sendRedirect(request.getContextPath() + "/index.jsp"); // Redirect to login page
+		response.sendRedirect(request.getContextPath() + "/app/login"); // Redirect to login page
 	}
 
 	// Example converter method
@@ -318,7 +338,7 @@ public class FrontControllerServlet extends HttpServlet {
 		User loggedInUser = (session != null) ? (User) session.getAttribute("loggedInUser") : null;
 
 		if (loggedInUser == null) {
-			response.sendRedirect(request.getContextPath() + "/index.jsp"); // Not logged in, redirect to login
+			response.sendRedirect(request.getContextPath() + "/app/login"); 
 			return;
 		}
 
@@ -365,7 +385,7 @@ public class FrontControllerServlet extends HttpServlet {
 				session.invalidate();
 			}
 			request.setAttribute("errorMessage", "Your user account could not be found. Please log in again.");
-			request.getRequestDispatcher("/index.jsp").forward(request, response);
+			request.getRequestDispatcher("/app/login").forward(request, response);
 			return; // Important: return after forwarding/redirecting
 		}
 
@@ -378,7 +398,7 @@ public class FrontControllerServlet extends HttpServlet {
 		HttpSession session = request.getSession(false);
 		User loggedInUser = (session != null) ? (User) session.getAttribute("loggedInUser") : null;
 		if (loggedInUser == null) {
-			response.sendRedirect(request.getContextPath() + "/index.jsp");
+			response.sendRedirect(request.getContextPath() + "/app/login");
 			return;
 		}
 
@@ -394,7 +414,7 @@ public class FrontControllerServlet extends HttpServlet {
 		HttpSession session = request.getSession(false);
 		User loggedInUser = (session != null) ? (User) session.getAttribute("loggedInUser") : null;
 		if (loggedInUser == null) {
-			response.sendRedirect(request.getContextPath() + "/index.jsp");
+			response.sendRedirect(request.getContextPath() + "/app/login");
 			return;
 		}
 
@@ -411,7 +431,7 @@ public class FrontControllerServlet extends HttpServlet {
 		HttpSession session = request.getSession(false);
 		User loggedInUser = (session != null) ? (User) session.getAttribute("loggedInUser") : null;
 		if (loggedInUser == null) {
-			response.sendRedirect(request.getContextPath() + "/index.jsp");
+			response.sendRedirect(request.getContextPath() + "/app/login");
 			return;
 		}
 
@@ -442,7 +462,7 @@ private void handleWireTransferPage(HttpServletRequest request, HttpServletRespo
             throws ServletException, IOException {
         HttpSession session = request.getSession(false);
         if (session == null || session.getAttribute("loggedInUser") == null) {
-            response.sendRedirect(request.getContextPath() + "/index.jsp");
+            response.sendRedirect(request.getContextPath() + "/app/login");
             return;
         }
         User currentUser = (User) session.getAttribute("loggedInUser");
@@ -462,7 +482,7 @@ private void handleWireTransferPage(HttpServletRequest request, HttpServletRespo
             throws ServletException, IOException {
         HttpSession session = request.getSession(false);
         if (session == null || session.getAttribute("loggedInUser") == null) {
-            response.sendRedirect(request.getContextPath() + "/index.jsp");
+            response.sendRedirect(request.getContextPath() + "/app/login");
             return;
         }
         User currentUser = (User) session.getAttribute("loggedInUser");
@@ -538,7 +558,7 @@ private void handleWireTransferPage(HttpServletRequest request, HttpServletRespo
 			throws ServletException, IOException, SQLException, ResourceNotFoundException {
 		HttpSession session = request.getSession(false);
 		if (session == null || session.getAttribute("loggedInUser") == null) {
-			response.sendRedirect(request.getContextPath() + "/index.jsp");
+			response.sendRedirect(request.getContextPath() + "/app/login");
 			return;
 		}
 		User currentUser = (User) session.getAttribute("loggedInUser");
@@ -586,7 +606,7 @@ private void handleWireTransferPage(HttpServletRequest request, HttpServletRespo
 		HttpSession session = request.getSession(false);
 		User loggedInUser = (session != null) ? (User) session.getAttribute("loggedInUser") : null;
 		if (loggedInUser == null) {
-			response.sendRedirect(request.getContextPath() + "/index.jsp");
+			response.sendRedirect(request.getContextPath() + "/app/login");
 			return;
 		}
 
@@ -633,7 +653,7 @@ private void handleWireTransferPage(HttpServletRequest request, HttpServletRespo
 		HttpSession session = request.getSession(false);
 		User loggedInUser = (session != null) ? (User) session.getAttribute("loggedInUser") : null;
 		if (loggedInUser == null) {
-			response.sendRedirect(request.getContextPath() + "/index.jsp");
+			response.sendRedirect(request.getContextPath() + "/app/login");
 			return;
 		}
 
@@ -680,7 +700,7 @@ private void handleWireTransferPage(HttpServletRequest request, HttpServletRespo
 		HttpSession session = request.getSession(false);
 		User loggedInUser = (session != null) ? (User) session.getAttribute("loggedInUser") : null;
 		if (loggedInUser == null) {
-			response.sendRedirect(request.getContextPath() + "/index.jsp");
+			response.sendRedirect(request.getContextPath() + "/app/login");
 			return;
 		}
 

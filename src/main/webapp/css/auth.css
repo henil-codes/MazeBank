@@ -1,0 +1,53 @@
+/* Auth-specific CSS for login and register pages */
+
+body.auth-body {
+    display: flex;
+    min-height: 100vh;
+    align-items: stretch;
+    background-color: var(--cibc-off-white);
+}
+
+.auth-card-container {
+    flex-basis: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+}
+
+.auth-image-container {
+    flex-basis: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    background-color: var(--cibc-red);
+}
+
+.auth-image-container img {
+    max-width: 100%;
+    height: auto;
+}
+
+.auth-card {
+    width: 100%;
+    max-width: 500px;
+    padding: 2rem;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    body.auth-body {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .auth-card-container, .auth-image-container {
+        flex-basis: 100%;
+        width: 100%;
+    }
+
+    .auth-image-container {
+        display: none; /* Hiding image on mobile for better user focus */
+    }
+}

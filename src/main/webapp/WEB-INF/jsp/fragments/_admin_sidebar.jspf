@@ -1,0 +1,19 @@
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<div class="admin-sidebar">
+	<div class="admin-sidebar-header">
+		<img src="${pageContext.request.contextPath}/img/logo-white.svg"
+			alt="Maze Bank Logo" class="admin-sidebar-logo">
+		<h3>Admin Panel</h3>
+	</div>
+	<ul class="admin-sidebar-menu">
+		<li><a href="${pageContext.request.contextPath}/app/admin/dashboard"
+			class="${pageContext.request.servletPath eq '/admin/dashboard' ? 'active' : ''}"><i class="fas fa-home"></i> Dashboard</a></li>
+		<li><a href="${pageContext.request.contextPath}/app/admin/users"
+			class="${pageContext.request.servletPath eq '/admin/users' ? 'active' : ''}"><i class="fas fa-users"></i> User Management</a></li>
+		<li><a href="${pageContext.request.contextPath}/app/admin/accounts"
+			class="${pageContext.request.servletPath eq '/admin/accounts' ? 'active' : ''}"><i class="fas fa-university"></i> Account Management</a></li>
+	</ul>
+	<div class="admin-sidebar-logout">
+		<a href="${pageContext.request.contextPath}/app/logout" class="btn btn-secondary">Logout</a>
+	</div>
+</div>

@@ -18,7 +18,7 @@
         <% List<Account> accounts = (List<Account>) request.getAttribute("userAccounts"); %>
         
         <% if (accounts != null && !accounts.isEmpty()) { %>
-            <table>
+            <table class="data-table">
                 <thead>
                     <tr>
                         <th>Account Number</th>
@@ -43,7 +43,9 @@
                 </tbody>
             </table>
         <% } else { %>
-            <p>You have no accounts to display.</p>
+            <div class="alert alert-info">
+                <p>You have no accounts to display.</p>
+            </div>
         <% } %>
     </div>
 </body>

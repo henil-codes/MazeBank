@@ -1,49 +1,35 @@
-<%@ page language="java" contentType="text/html; charset=UTF-8"
-	pageEncoding="UTF-8"%>
+<%@ page language="java" contentType="text/html; charset=UTF-8" pageEncoding="UTF-8"%>
 <%@ page import="com.mazebank.model.User"%>
 <%@ page import="com.mazebank.model.UserRole"%>
 <%
-User loggedInUser = (User) session.getAttribute("loggedInUser");
-if (loggedInUser == null) {
-	// Should not happen if AuthFilter is working, but as a fallback
-	response.sendRedirect(request.getContextPath() + "/index.jsp");
-	return;
-}
+    User loggedInUser = (User) session.getAttribute("loggedInUser");
+    if (loggedInUser == null) {
+        // Should not happen if AuthFilter is working, but as a fallback
+        response.sendRedirect(request.getContextPath() + "/index.jsp");
+        return;
+    }
 %>
 <div class="sidebar">
-	<div class="sidebar-header">
-		<h3>MazeBank</h3>
-		<p>
-			Welcome,
-			<%=loggedInUser.getFirstName()%></p>
-		<p>
-			Role:
-			<%=loggedInUser.getRole().name()%></p>
-	</div>
-	<ul class="sidebar-menu">
-		<li><a href="${pageContext.request.contextPath}/app/dashboard">Dashboard</a></li>
-		<%
-		if (loggedInUser.getRole() == UserRole.CUSTOMER) {
-		%>
-		<li><a
-			href="${pageContext.request.contextPath}/app/customer/payments">Payments</a></li>
-		<li><a
-			href="${pageContext.request.contextPath}/app/customer/accounts">View
-				All Accounts</a></li>
-				
-		<%-- Add more customer-specific links here --%>
-		<%
-		} else if (loggedInUser.getRole() == UserRole.ADMIN) {
-		%>
-		<li><a href="${pageContext.request.contextPath}/app/admin/users">Manage
-				Users</a></li>
-		<li><a
-			href="${pageContext.request.contextPath}/app/admin/accounts">Manage
-				Accounts</a></li>
-		<%-- Add more admin-specific links here --%>
-		<%
-		}
-		%>
-		<li><a href="${pageContext.request.contextPath}/app/logout">Logout</a></li>
-	</ul>
+    <div class="sidebar-header">
+        <a href="${pageContext.request.contextPath}/app/dashboard">
+            <img src="${pageContext.request.contextPath}/img/mazebank_logo_white.png" alt="MazeBank Logo" class="sidebar-logo">
+        </a>
+        <p class="welcome-message">Hello, <%=loggedInUser.getFirstName()%></p>
+        <p class="user-role">Role: <%=loggedInUser.getRole().name()%></p>
+    </div>
+    <ul class="sidebar-menu">
+        <li><a href="${pageContext.request.contextPath}/app/dashboard"><i class="fas fa-home"></i>Dashboard</a></li>
+        <% if (loggedInUser.getRole() == UserRole.CUSTOMER) { %>
+            <li><a href="${pageContext.request.contextPath}/app/customer/payments"><i class="fas fa-credit-card"></i>Payments</a></li>
+            <li><a href="${pageContext.request.contextPath}/app/customer/accounts"><i class="fas fa-piggy-bank"></i>View All Accounts</a></li>
+            <%-- Add more customer-specific links here --%>
+        <% } else if (loggedInUser.getRole() == UserRole.ADMIN) { %>
+            <li><a href="${pageContext.request.contextPath}/app/admin/users"><i class="fas fa-users"></i>Manage Users</a></li>
+            <li><a href="${pageContext.request.contextPath}/app/admin/accounts"><i class="fas fa-file-invoice-dollar"></i>Manage Accounts</a></li>
+            <%-- Add more admin-specific links here --%>
+        <% } %>
+        <li class="sidebar-logout-link"><a href="${pageContext.request.contextPath}/app/logout"><i class="fas fa-sign-out-alt"></i>Logout</a></li>
+    </ul>
 </div>
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">

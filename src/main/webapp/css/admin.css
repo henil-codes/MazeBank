@@ -1,0 +1,127 @@
+/* Admin-specific CSS */
+
+body.admin-body {
+    display: flex;
+    flex-direction: row;
+    background-color: var(--cibc-off-white);
+    min-height: 100vh;
+}
+
+.admin-sidebar {
+    width: 250px;
+    background-color: var(--cibc-darker);
+    color: var(--cibc-white);
+    padding: 2rem 1.5rem;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.admin-sidebar-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.admin-sidebar-logo {
+    width: 120px;
+    margin-bottom: 1rem;
+}
+
+.admin-sidebar-header h3 {
+    color: var(--cibc-white);
+}
+
+.admin-sidebar-menu {
+    list-style: none;
+    flex-grow: 1;
+}
+
+.admin-sidebar-menu li {
+    margin-bottom: 0.5rem;
+}
+
+.admin-sidebar-menu a {
+    color: var(--cibc-light-grey);
+    text-decoration: none;
+    display: block;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.admin-sidebar-menu a i {
+    margin-right: 1rem;
+}
+
+.admin-sidebar-menu a:hover,
+.admin-sidebar-menu a.active {
+    background-color: var(--cibc-red);
+    color: var(--cibc-white);
+    font-weight: bold;
+}
+
+.admin-main-content {
+    flex-grow: 1;
+    padding: 2rem 4rem;
+    background-color: var(--cibc-white);
+    overflow-y: auto;
+}
+
+/* Admin-specific table styling */
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1.5rem 0;
+    background-color: var(--cibc-white);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.data-table th,
+.data-table td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid #EFEFEF;
+}
+
+.data-table thead {
+    background-color: var(--cibc-light-grey);
+}
+
+.data-table tbody tr:hover {
+    background-color: #F8F8F8;
+}
+
+.action-link-delete {
+	color: #dc3545;
+	font-weight: bold;
+}
+
+.action-link-delete:hover {
+	text-decoration: underline;
+}
+
+/* Admin dashboard sections */
+.admin-card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+}
+
+/* Utility class for buttons with a delete function */
+.btn-delete {
+    background-color: #dc3545;
+}
+
+.btn-delete:hover {
+    background-color: #c82333;
+}
+
+@media (max-width: 768px) {
+    .admin-sidebar {
+        display: none;
+    }
+
+    .admin-main-content {
+        padding: 1rem;
+    }
+}

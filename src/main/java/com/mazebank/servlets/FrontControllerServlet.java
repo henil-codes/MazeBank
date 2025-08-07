@@ -21,6 +21,7 @@ import com.mazebank.model.Account;
 import com.mazebank.model.AccountStatus;
 import com.mazebank.model.AccountType;
 import com.mazebank.model.HolderType;
+import com.mazebank.model.Transaction;
 import com.mazebank.model.TransactionType;
 import com.mazebank.model.UserStatus;
 import com.mazebank.service.AccountService;
@@ -213,7 +214,8 @@ public class FrontControllerServlet extends HttpServlet {
 				showAdminAccountCreatePage(request, response);
 				break;
 			case "/admin/accounts/view":
-				RequestDispatcher accountView = request.getRequestDispatcher("/WEB-INF/jsp/customer/account_details.jsp");
+				RequestDispatcher accountView = request
+						.getRequestDispatcher("/WEB-INF/jsp/customer/account_details.jsp");
 				accountView.forward(request, response);
 				break;
 			case "/accounts/close": // This is a GET to show the form, actual close is PUT
@@ -442,10 +444,9 @@ public class FrontControllerServlet extends HttpServlet {
 		}
 
 		request.setAttribute("account", account);
-		// Optionally fetch transactions for this account
-		// List<Transaction> transactions =
-		// transactionService.getTransactionsByAccountId(accountId);
-		// request.setAttribute("transactions", transactions);
+
+		List<Transaction> transactions = transactionService.getTransactionsByAccountId(accountId);
+		request.setAttribute("transactions", transactions);
 
 		request.getRequestDispatcher("/WEB-INF/jsp/customer/account_details.jsp").forward(request, response);
 	}

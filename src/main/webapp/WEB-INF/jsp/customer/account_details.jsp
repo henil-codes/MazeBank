@@ -10,6 +10,8 @@
 <meta charset="UTF-8">
 <title>Account Details</title>
 <link rel="stylesheet"
+	href="${pageContext.request.contextPath}/css/tables.css">
+<link rel="stylesheet"
 	href="${pageContext.request.contextPath}/css/style.css">
 </head>
 <body class="dashboard-body">

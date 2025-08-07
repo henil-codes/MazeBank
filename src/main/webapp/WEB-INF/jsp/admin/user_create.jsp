@@ -1,5 +1,8 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
 	pageEncoding="UTF-8"%>
+<%@ page import="java.util.List"%>
+<%@ page import="com.mazebank.dto.UserResponseDTO"%>
+<%@ page import="com.mazebank.model.AccountType"%>
 <%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
 <!DOCTYPE html>
 <html>
@@ -19,40 +22,63 @@
 	<div class="admin-main-content">
 		<h2>Create New User</h2>
 		<div class="form-card">
-			<form action="${pageContext.request.contextPath}/app/admin/users/create"
+			<form
+				action="${pageContext.request.contextPath}/app/admin/accounts/create"
 				method="post">
-				<div class="form-group">
-					<label for="username">Username</label> <input type="text"
-						id="username" name="username" required>
-				</div>
-				<div class="form-group">
-					<label for="password">Password</label> <input type="password"
-						id="password" name="password" required>
-				</div>
-				<div class="form-group">
-					<label for="email">Email</label> <input type="email" id="email"
-						name="email" required>
-				</div>
-				<div class="form-group">
-					<label for="firstName">First Name</label> <input type="text"
-						id="firstName" name="firstName" required>
-				</div>
-				<div class="form-group">
-					<label for="lastName">Last Name</label> <input type="text"
-						id="lastName" name="lastName" required>
-				</div>
-				<div class="form-group">
-					<label for="role">Role</label> <select id="role" name="role"
-						required>
-						<option value="CUSTOMER">Customer</option>
-						<option value="ADMIN">Admin</option>
-					</select>
-				</div>
-				<div class="form-group mt-4">
-					<button type="submit" class="btn">Create User</button>
-					<a href="${pageContext.request.contextPath}/app/admin/users"
-						class="btn-secondary">Cancel</a>
-				</div>
+				<div class="form-card form-section">
+					<h3>Create New Account</h3>
+
+					<div class="form-group">
+						<%
+						List<UserResponseDTO> allUsers = (List<UserResponseDTO>) request.getAttribute("allUsers");
+						%>
+
+						<label for="newuser">Account ID:</label> <br> <select
+							name="newuser" id="newuser" required>
+							<%
+							if (allUsers != null && !allUsers.isEmpty()) {
+							%>
+
+							<%
+							for (UserResponseDTO user : allUsers) {
+							%>
+							<option value="<%=user.getUsername()%>"><%=user.getUsername()%></option>
+							<%
+							}
+							} else {
+							%>
+							<option value="" disabled>No User available</option>
+							<%
+							}
+							%>
+
+						</select> <br>
+					</div>
+
+					<div class="form-group">
+						<label for="initialBalance">Initial Balance:</label> <input
+							type="number" id="initialBalance" name="initialBalance"
+							step="0.01" min="0" value="0.00" required>
+					</div>
+					<div class="form-group">
+						<label for="overdraftLimit">Overdraft Limit:</label> <input
+							type="number" id="overdraftLimit" name="overdraftLimit"
+							step="0.01" min="0" value="0.00" required>
+					</div>
+					<div class="form-group">
+						<label for="maxTransactionAmount">Max Transaction Amount:</label>
+						<input type="number" id="maxTransactionAmount"
+							name="maxTransactionAmount" step="0.01" min="0" value="10000.00"
+							required>
+					</div>
+					<div class="form-group">
+						<label for="role">Role</label> <select id="role" name="role"
+							required>
+							<option value="CUSTOMER">Customer</option>
+							<option value="ADMIN">Admin</option>
+						</select>
+					</div>
+					<button type="submit" class="btn">Create Account</button>
 			</form>
 		</div>
 	</div>

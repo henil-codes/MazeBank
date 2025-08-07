@@ -8,8 +8,11 @@ import com.mazebank.dao.TransactionDao;
 import com.mazebank.dao.TransactionDaoImpl;
 import com.mazebank.dao.TransferDao;
 import com.mazebank.dao.TransferDaoImpl;
+import com.mazebank.dao.WireTransferDao;
+import com.mazebank.dao.WireTransferDaoImpl;
 import com.mazebank.dto.TransactionDTO;
 import com.mazebank.exception.InsufficientFundsException;
+import com.mazebank.exception.InvalidTransferException;
 import com.mazebank.exception.ResourceNotFoundException;
 import com.mazebank.model.Account;
 import com.mazebank.model.Log;
@@ -18,6 +21,7 @@ import com.mazebank.model.TransactionStatus;
 import com.mazebank.model.TransactionType;
 import com.mazebank.model.Transfer;
 import com.mazebank.model.TransferStatus;
+import com.mazebank.model.WireTransfer;
 import com.mazebank.model.AccountStatus; // New Import
 import com.mazebank.util.DBConnection;
 import com.mazebank.util.NumberUtils;
@@ -26,6 +30,7 @@ import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
+import java.util.List;
 
 public class TransactionServiceImpl implements TransactionService {
 
@@ -33,20 +38,23 @@ public class TransactionServiceImpl implements TransactionService {
 	private TransactionDao transactionDao;
 	private LogDao logDao;
 	private TransferDao transferDao;
+	private WireTransferDao wireTransferDao;
 
 	public TransactionServiceImpl() {
 		this.accountDao = new AccountDaoImpl();
 		this.transactionDao = new TransactionDaoImpl();
 		this.logDao = new LogDaoImpl();
 		this.transferDao = new TransferDaoImpl();
+		this.wireTransferDao = new WireTransferDaoImpl();
 	}
 
 	public TransactionServiceImpl(AccountDao accountDao, TransactionDao transactionDao, LogDao logDao,
-			TransferDao transferDao) {
+			TransferDao transferDao, WireTransferDao wireTransferDao) {
 		this.accountDao = accountDao;
 		this.transactionDao = transactionDao;
 		this.logDao = logDao;
 		this.transferDao = transferDao;
+		this.wireTransferDao = wireTransferDao;
 	}
 
 	@Override
@@ -138,6 +146,11 @@ public class TransactionServiceImpl implements TransactionService {
 				}
 			}
 		}
+	}
+	
+	@Override
+	public List<Transaction> getTransactionsByAccountId(int accountId) throws SQLException, ResourceNotFoundException {
+	    return transactionDao.findTransactionsByAccountId(accountId);
 	}
 
 	@Override
@@ -279,7 +292,8 @@ public class TransactionServiceImpl implements TransactionService {
 			// transfer_date handled by DB
 			transfer.setDescription(transactionDTO.getDescription());
 			transfer.setStatus(TransferStatus.COMPLETED); // Default to completed immediately for simple transfers
-			transferDao.add(transfer, conn); // This will populate transfer.getTransferId() if DAO handles generated keys
+			transferDao.add(transfer, conn); // This will populate transfer.getTransferId() if DAO handles generated
+												// keys
 
 			// It's crucial here that transfer.getTransferId() is populated by the add
 			// method.
@@ -343,4 +357,5 @@ public class TransactionServiceImpl implements TransactionService {
 			}
 		}
 	}
+
 }

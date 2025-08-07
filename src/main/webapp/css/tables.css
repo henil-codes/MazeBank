@@ -1,0 +1,60 @@
+/* Basic table styling */
+table {
+width: 100%;
+border-collapse: collapse;
+margin-top: 20px;
+border-spacing: 0; 
+border: 1px solid #ddd; 
+}
+
+th, td {
+padding: 12px 15px;
+text-align: left;
+border-bottom: 1px solid #ddd;
+}
+
+th {
+background-color: #dc3545;
+color: white;
+font-weight: bold;
+}
+
+tbody tr:nth-child(even) {
+background-color: #f9f9f9; /* Optional: Add zebra striping */
+}
+
+/* Style for action links */
+td a {
+color: #dc3545;
+text-decoration: none;
+margin-right: 8px;
+}
+
+td a:hover {
+text-decoration: underline;
+}
+
+/* Style for the approve button */
+.approve-btn {
+background-color: transparent;
+color: #dc3545;
+border: none;
+padding: 0;
+cursor: pointer;
+font-weight: bold;
+}
+
+.approve-btn:hover {
+text-decoration: underline;
+}
+
+/* Optional: Add rounded corners to the table */
+table {
+border-radius: 8px;
+overflow: hidden; 
+}
+
+/* Optional: Add a subtle box shadow */
+.admin-main-content table {
+box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}

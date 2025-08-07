@@ -14,7 +14,7 @@
 	href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 </head>
 <body class="admin-body">
-    <%@ include file="../fragments/_sidebar.jspf" %>
+	<%@ include file="../fragments/_admin_sidebar.jspf"%>
 
 	<div class="admin-main-content">
 		<h2>Admin Dashboard</h2>

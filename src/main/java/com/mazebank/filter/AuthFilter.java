@@ -48,7 +48,7 @@ public class AuthFilter implements Filter {
 		// resource
 		if (loggedInUser == null && !isPublicPath && !isStaticResource) {
 			System.out.println("AuthFilter: Unauthenticated access to " + requestURI + ". Redirecting to login.");
-			httpResponse.sendRedirect(contextPath + "/login");
+			httpResponse.sendRedirect(contextPath + "/app/login");
 			return;
 		}
 

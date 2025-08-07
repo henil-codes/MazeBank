@@ -11,6 +11,10 @@
 <meta charset="UTF-8">
 <title>Customer Dashboard</title>
 <link rel="stylesheet"
+	href="${pageContext.request.contextPath}/css/tables.css">
+<link rel="stylesheet"
+	href="${pageContext.request.contextPath}/css/admin.css">
+<link rel="stylesheet"
 	href="${pageContext.request.contextPath}/css/style.css">
 <link rel="stylesheet"
 	href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
@@ -22,7 +26,10 @@
 	<div class="main-content">
 		<div class="welcome-section">
 			<%-- Get the logged-in user from the session --%>
-			<h1>Hello, <%=loggedInUser.getFirstName()%>!</h1>
+			<h1>
+				Hello,
+				<%=loggedInUser.getFirstName()%>!
+			</h1>
 			<p>Welcome back to your Maze Bank dashboard.</p>
 		</div>
 
@@ -108,7 +115,7 @@
 			} else {
 			%>
 			<div class="alert alert-info">
-				<p>No accounts found. Create one below!</p>
+				<p>No accounts found. Please request the bank to create one!</p>
 			</div>
 			<%
 			}
@@ -122,42 +129,7 @@
 				<i class="fas fa-bolt"></i> Quick Actions
 			</h2>
 			<div class="quick-actions-grid">
-				<div class="form-card form-section">
-					<h3>Create New Account</h3>
-					<form
-						action="${pageContext.request.contextPath}/app/accounts/create"
-						method="post">
-						<div class="form-group">
-							<label for="accountType">Account Type:</label> <select
-								id="accountType" name="accountType" required>
-								<%
-								for (AccountType type : AccountType.values()) {
-								%>
-								<option value="<%=type.name()%>"><%=type.name()%></option>
-								<%
-								}
-								%>
-							</select>
-						</div>
-						<div class="form-group">
-							<label for="initialBalance">Initial Balance:</label> <input
-								type="number" id="initialBalance" name="initialBalance"
-								step="0.01" min="0" value="0.00" required>
-						</div>
-						<div class="form-group">
-							<label for="overdraftLimit">Overdraft Limit:</label> <input
-								type="number" id="overdraftLimit" name="overdraftLimit"
-								step="0.01" min="0" value="0.00" required>
-						</div>
-						<div class="form-group">
-							<label for="maxTransactionAmount">Max Transaction Amount:</label>
-							<input type="number" id="maxTransactionAmount"
-								name="maxTransactionAmount" step="0.01" min="0" value="10000.00"
-								required>
-						</div>
-						<button type="submit" class="btn">Create Account</button>
-					</form>
-				</div>
+
 				<div class="form-card form-section">
 					<h3>Perform Wire Transfer</h3>
 					<p>Click below to transfer funds to another account.</p>

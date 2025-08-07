@@ -39,7 +39,7 @@
 				to fit your lifestyle and financial goals.</p>
 			<div class="card-grid">
 				<div class="card">
-					<img src="${pageContext.request.contextPath}/img/icon-accounts.svg"
+					<img src="${pageContext.request.contextPath}/img/account.png"
 						alt="Accounts Icon">
 					<h3>Checking & Savings</h3>
 					<p>Manage your daily finances with our flexible and secure

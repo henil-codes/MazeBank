@@ -54,7 +54,7 @@
 							<th>Date</th>
 							<th>Description</th>
 							<th>Status</th>
-						</tr>
+						</tr>	
 					</thead>
 					<tbody>
 						<%

@@ -44,11 +44,11 @@
 				<div class="form-group">
 					<label for="balance">Balance</label> <input type="number"
 						id="balance" name="balance" min="0" step="0.01"
-						value="${account.balance}" required>
+						value="${account.balance}">
 				</div>
 				<div class="form-group">
 					<label for="status">Status</label> <select id="status"
-						name="status" required>
+						name="status">
 						<option value="ACTIVE"
 							${account.status.name() eq 'ACTIVE' ? 'selected' : ''}>Active</option>
 						<option value="INACTIVE"

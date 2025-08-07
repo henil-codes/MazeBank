@@ -10,14 +10,17 @@
 <meta charset="UTF-8">
 <title>Admin - User Management</title>
 <link rel="stylesheet"
-	href="${pageContext.request.contextPath}/css/style.css">
+	href="${pageContext.request.contextPath}/css/tables.css">
 <link rel="stylesheet"
 	href="${pageContext.request.contextPath}/css/admin.css">
 <link rel="stylesheet"
+	href="${pageContext.request.contextPath}/css/style.css">
+<link rel="stylesheet"
 	href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
 </head>
 <body class="admin-body">
-    <%@ include file="../fragments/_sidebar.jspf" %>
+	<%@ include file="../fragments/_admin_sidebar.jspf"%>
 
 	<div class="admin-main-content">
 		<h2>User Management</h2>
@@ -70,15 +73,16 @@
 					<td><%=user.getCreatedAt()%></td>
 					<td>
 						<%-- Example actions: View, Edit, Delete (requires more servlets/logic) --%>
-						<a href="#">View</a> | <a href="${pageContext.request.contextPath}/app/admin/user/edit">Edit</a> | <a href="#">Delete</a>
-						<%
-						if (user.getStatus() == UserStatus.PENDING) {
-						%> |
+						<a href="${pageContext.request.contextPath}/app/admin/user/edit">Edit</a>
+						| <a
+						href="<%=request.getContextPath()%>/app/admin/accounts/create?userId=<%=user.getUserId()%>">Create
+							Account</a> | <a href="#">Delete</a> <%
+ if (user.getStatus() == UserStatus.PENDING) {
+ %> |
 						<form
 							action="${pageContext.request.contextPath}/app/admin/users/approve"
 							method="post" style="display: inline;">
-							<input type="hidden" name="userId"
-								value="<%=user.getUserId()%>">
+							<input type="hidden" name="userId" value="<%=user.getUserId()%>">
 							<button type="submit" class="approve-btn">Approve</button>
 						</form> <%
  }

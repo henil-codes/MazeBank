@@ -7,6 +7,10 @@
 <title>About Maze Bank</title>
 <link rel="stylesheet" type="text/css"
 	href="${pageContext.request.contextPath}/css/style.css">
+<link rel="stylesheet"
+	href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+	integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA=="
+	crossorigin="anonymous" referrerpolicy="no-referrer" />
 </head>
 <body>
 	<%@ include file="WEB-INF/jsp/fragments/_header.jspf"%>
@@ -31,24 +35,21 @@
 				<h2 class="text-center">Our Values</h2>
 				<div class="card-grid">
 					<div class="card">
-						<img src="${pageContext.request.contextPath}/img/icon-integrity.svg"
-							alt="Integrity Icon">
+						<i class="fas fa-balance-scale" aria-hidden="true"></i>
 						<h3>Integrity</h3>
-						<p>We operate with the highest standards of ethics and honesty.
-							Your trust is our most valuable asset, and we work hard every day
-							to earn and keep it.</p>
+						<p>We operate with the highest standards of ethics and
+							honesty. Your trust is our most valuable asset, and we work hard
+							every day to earn and keep it.</p>
 					</div>
 					<div class="card">
-						<img src="${pageContext.request.contextPath}/img/icon-innovation.svg"
-							alt="Innovation Icon">
+						<i class="fas fa-lightbulb" aria-hidden="true"></i>
 						<h3>Innovation</h3>
 						<p>We embrace technology to provide smarter, faster, and more
 							convenient banking solutions. We are always looking for new ways
 							to serve you better.</p>
 					</div>
 					<div class="card">
-						<img src="${pageContext.request.contextPath}/img/icon-community.svg"
-							alt="Community Icon">
+						<i class="fas fa-users" aria-hidden="true"></i>
 						<h3>Community</h3>
 						<p>We are dedicated to the communities we serve. We invest in
 							local initiatives and support our neighbors to help everyone

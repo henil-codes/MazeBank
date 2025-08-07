@@ -8,6 +8,7 @@ public enum TransactionType {
     DEPOSIT,
     WITHDRAWAL,
     TRANSFER_IN,
+    WIRE_TRANSFER,
     TRANSFER_OUT;
 
     public static TransactionType fromString(String text) {

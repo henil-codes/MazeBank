@@ -5,6 +5,14 @@
 <head>
 <meta charset="UTF-8">
 <title>Maze Bank - Sign On</title>
+<style type="text/css">
+.auth-image-container {
+        background-color: red; /* Ensures the red background is visible behind the transparent image */
+    }
+    .auth-image-container img {
+        background: none; /* Removes any default background from the image container */
+    }
+</style>
 <link rel="stylesheet" type="text/css"
 	href="${pageContext.request.contextPath}/css/style.css">
 <link rel="stylesheet" type="text/css"
@@ -45,7 +53,7 @@
 			</div>
 		</div>
 		<div class="auth-image-container login-image-container">
-			<img src="${pageContext.request.contextPath}/img/login-image.svg"
+			<img src="${pageContext.request.contextPath}/img/bank.jpg"
 				alt="Secure login illustration">
 		</div>
 	</div>

@@ -15,12 +15,13 @@
 			<div class="section">
 				<h2 class="text-center">Our Services</h2>
 				<p class="text-center">At Maze Bank, we offer a comprehensive
-					suite of banking products designed to meet all your financial needs.
-					Whether you're saving for the future, managing daily expenses, or
-					planning a major purchase, we have a solution for you.</p>
+					suite of banking products designed to meet all your financial
+					needs. Whether you're saving for the future, managing daily
+					expenses, or planning a major purchase, we have a solution for you.</p>
 				<div class="card-grid">
 					<div class="card">
-						<img src="${pageContext.request.contextPath}/img/icon-checking.svg"
+						<img
+							src="${pageContext.request.contextPath}/img/icon-checking.svg"
 							alt="Checking Account Icon">
 						<h3>Checking Accounts</h3>
 						<p>Our checking accounts provide secure and convenient access
@@ -29,7 +30,7 @@
 						<a href="#">Learn More</a>
 					</div>
 					<div class="card">
-						<img src="${pageContext.request.contextPath}/img/icon-savings.svg"
+						<img src="${pageContext.request.contextPath}/img/savings.jpg"
 							alt="Savings Account Icon">
 						<h3>Savings Accounts</h3>
 						<p>Grow your wealth with our high-interest savings accounts.
@@ -38,7 +39,7 @@
 						<a href="#">Learn More</a>
 					</div>
 					<div class="card">
-						<img src="${pageContext.request.contextPath}/img/icon-loans.svg"
+						<img src="${pageContext.request.contextPath}/img/load.jpg"
 							alt="Loan Icon">
 						<h3>Personal Loans</h3>
 						<p>Get the funds you need with a personal loan from Maze Bank.
@@ -47,7 +48,8 @@
 						<a href="#">Learn More</a>
 					</div>
 					<div class="card">
-						<img src="${pageContext.request.contextPath}/img/icon-mortgage.svg"
+						<img
+							src="${pageContext.request.contextPath}/img/icon-mortgage.svg"
 							alt="Mortgage Icon">
 						<h3>Mortgages</h3>
 						<p>Buying a home is one of life's biggest decisions. Our

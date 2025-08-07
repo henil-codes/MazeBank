@@ -14,7 +14,7 @@
 <body>
 	<div class="auth-container">
 		<div class="auth-image-container register-image-container">
-			<img src="${pageContext.request.contextPath}/img/register-image.svg"
+			<img src="${pageContext.request.contextPath}/img/bank.jpg"
 				alt="Registration illustration">
 		</div>
 		<div class="auth-card-container register-card-container">

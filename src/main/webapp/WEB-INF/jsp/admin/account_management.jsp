@@ -10,6 +10,8 @@
 <meta charset="UTF-8">
 <title>Admin - Account Management</title>
 <link rel="stylesheet"
+	href="${pageContext.request.contextPath}/css/tables.css">
+<link rel="stylesheet"
 	href="${pageContext.request.contextPath}/css/style.css">
 <link rel="stylesheet"
 	href="${pageContext.request.contextPath}/css/admin.css">
@@ -17,7 +19,7 @@
 	href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 </head>
 <body class="admin-body">
-    <%@ include file="../fragments/_sidebar.jspf" %>
+    	<%@ include file="../fragments/_admin_sidebar.jspf"%>
 
 	<div class="admin-main-content">
 		<h2>Account Management</h2>
@@ -69,7 +71,7 @@
 					<td>
 						<%-- Example actions: View, Edit, Close (requires more servlets/logic) --%>
 						<a href="#">View</a> | <a href="${pageContext.request.contextPath}/app/admin/accounts/edit">Edit</a> | <%
-						if (account.getStatus().name().equals("ACTIVE") && account.getBalance().compareTo(java.math.BigDecimal.ZERO) == 0) {
+						if (account.getStatus().name().equals("ACTIVE") ) {
 						%>
 						<a
 						href="${pageContext.request.contextPath}/app/accounts/close?accountId=<%= account.getAccountId() %>">Close</a>

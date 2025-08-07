@@ -50,7 +50,7 @@ public class FrontControllerServlet extends HttpServlet {
 	private UserService userService;
 	private AccountService accountService;
 	private TransactionService transactionService;
-	private WireTransferService wireTransferService; 
+	private WireTransferService wireTransferService;
 
 	@Override
 	public void init() throws ServletException {
@@ -115,10 +115,6 @@ public class FrontControllerServlet extends HttpServlet {
 				System.out.println("Matched: /login");
 				handleLogin(request, response);
 				break;
-			case "/accounts/create":
-				System.out.println("Matched: /accounts/create");
-				handleAccountCreation(request, response);
-				break;
 			case "/transactions/deposit":
 				System.out.println("Matched: /transactions/deposit - Handling deposit request");
 				handleDeposit(request, response);
@@ -131,9 +127,16 @@ public class FrontControllerServlet extends HttpServlet {
 				System.out.println("Matched: /transactions/transfer");
 				handleTransfer(request, response);
 				break;
-            case "/customer/wire_transfer":
-                handleProcessWireTransfer(request, response);
-                break;
+			case "/customer/wire_transfer":
+				handleProcessWireTransfer(request, response);
+				break;
+
+			// admin functionality
+
+			case "/admin/accounts/create/one":
+				System.out.println("Matched: /accounts/create");
+				handleAccountCreation(request, response);
+				break;
 			case "/admin/users/approve":
 				System.out.println("Matched: /admin/users/approve");
 				handleApproveUser(request, response);
@@ -179,10 +182,10 @@ public class FrontControllerServlet extends HttpServlet {
 			case "/dashboard":
 				handleDashboardRedirect(request, response); // New handler for role-based dashboard
 				break;
-            case "/login": 
-                RequestDispatcher login = request.getRequestDispatcher("/WEB-INF/jsp/login.jsp");
-                login.forward(request, response);
-                break;
+			case "/login":
+				RequestDispatcher login = request.getRequestDispatcher("/WEB-INF/jsp/login.jsp");
+				login.forward(request, response);
+				break;
 			case "/logout":
 				handleLogout(request, response);
 				break;
@@ -196,9 +199,9 @@ public class FrontControllerServlet extends HttpServlet {
 			case "/customer/accounts/view":
 				showCustomerAccountDetails(request, response);
 				break;
-            case "/customer/wire_transfer":
-                handleWireTransferPage(request, response);
-                break;
+			case "/customer/wire_transfer":
+				handleWireTransferPage(request, response);
+				break;
 			// Admin-specific GET routes
 			case "/admin/users":
 				showAdminUserManagementPage(request, response);
@@ -206,24 +209,13 @@ public class FrontControllerServlet extends HttpServlet {
 			case "/admin/accounts":
 				showAdminAccountManagementPage(request, response);
 				break;
-				
-			// new admin pages
-            case "/admin/accounts/create": 
-                RequestDispatcher accountCreate = request.getRequestDispatcher("/WEB-INF/jsp/admin/account_create.jsp");
-                accountCreate.forward(request, response);
-                break;
-            case "/admin/accounts/edit": 
-                RequestDispatcher accountEdit= request.getRequestDispatcher("/WEB-INF/jsp/admin/account_edit.jsp");
-                accountEdit.forward(request, response);
-                break;
-            case "/admin/user/create": 
-                RequestDispatcher adminUserCreate= request.getRequestDispatcher("/WEB-INF/jsp/admin/user_create.jsp");
-                adminUserCreate.forward(request, response);
-                break;
-            case "/admin/user/edit": 
-                RequestDispatcher adminUserEdit= request.getRequestDispatcher("/WEB-INF/jsp/admin/user_edit.jsp");
-                adminUserEdit.forward(request, response);
-                break;
+			case "/admin/accounts/create":
+				showAdminAccountCreatePage(request, response);
+				break;
+			case "/admin/accounts/view":
+				RequestDispatcher accountView = request.getRequestDispatcher("/WEB-INF/jsp/customer/account_details.jsp");
+				accountView.forward(request, response);
+				break;
 			case "/accounts/close": // This is a GET to show the form, actual close is PUT
 				showCloseAccountForm(request, response);
 				break;
@@ -294,7 +286,7 @@ public class FrontControllerServlet extends HttpServlet {
 		UserLoginDTO loginDTO = new UserLoginDTO();
 		loginDTO.setUsername(username);
 		loginDTO.setPassword(password);
-		
+
 		Optional<User> authenticatedUser = authService.authenticate(loginDTO);
 
 		if (authenticatedUser.isPresent()) {
@@ -338,7 +330,7 @@ public class FrontControllerServlet extends HttpServlet {
 		User loggedInUser = (session != null) ? (User) session.getAttribute("loggedInUser") : null;
 
 		if (loggedInUser == null) {
-			response.sendRedirect(request.getContextPath() + "/app/login"); 
+			response.sendRedirect(request.getContextPath() + "/app/login");
 			return;
 		}
 
@@ -354,9 +346,9 @@ public class FrontControllerServlet extends HttpServlet {
 
 		Optional<User> userOptional;
 		if (userResponseDTO != null) {
-			User updatedUser = convertToUser(userResponseDTO); // You'll need to implement this conversion method
+			User updatedUser = convertToUser(userResponseDTO);
 			userOptional = Optional.of(updatedUser);
-			session.setAttribute("loggedInUser", updatedUser); // Update session with fresh data
+			session.setAttribute("loggedInUser", updatedUser);
 
 			if (updatedUser.getRole() == UserRole.ADMIN) {
 				// Admin dashboard requires specific data loading
@@ -457,58 +449,60 @@ public class FrontControllerServlet extends HttpServlet {
 
 		request.getRequestDispatcher("/WEB-INF/jsp/customer/account_details.jsp").forward(request, response);
 	}
-	
-private void handleWireTransferPage(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        HttpSession session = request.getSession(false);
-        if (session == null || session.getAttribute("loggedInUser") == null) {
-            response.sendRedirect(request.getContextPath() + "/app/login");
-            return;
-        }
-        User currentUser = (User) session.getAttribute("loggedInUser");
-        
-        try {
-            List<Account> userAccounts = accountService.getAccountsByUserId(currentUser.getUserId());
-            request.setAttribute("userAccounts", userAccounts);
-            RequestDispatcher dispatcher = request.getRequestDispatcher("/WEB-INF/jsp/customer/wire_transfer.jsp");
-            dispatcher.forward(request, response);
-        } catch (SQLException e) {
-            e.printStackTrace();
-            response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Database error.");
-        }
-    }
-    
-    private void handleProcessWireTransfer(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
-        HttpSession session = request.getSession(false);
-        if (session == null || session.getAttribute("loggedInUser") == null) {
-            response.sendRedirect(request.getContextPath() + "/app/login");
-            return;
-        }
-        User currentUser = (User) session.getAttribute("loggedInUser");
 
-        WireTransferDTO transferDto = new WireTransferDTO();
-        transferDto.setUserId(currentUser.getUserId());
-        transferDto.setSenderAccountNumber(request.getParameter("senderAccountNumber"));
-        transferDto.setRecipientAccountNumber(request.getParameter("recipientAccountNumber"));
-        transferDto.setDescription(request.getParameter("description"));
-        try {
-            transferDto.setAmount(new BigDecimal(request.getParameter("amount")));
-        } catch (NumberFormatException e) {
-            response.sendRedirect(request.getContextPath() + "/app/customer/wire_transfer?error=Invalid amount format.");
-            return;
-        }
+	private void handleWireTransferPage(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		HttpSession session = request.getSession(false);
+		if (session == null || session.getAttribute("loggedInUser") == null) {
+			response.sendRedirect(request.getContextPath() + "/app/login");
+			return;
+		}
+		User currentUser = (User) session.getAttribute("loggedInUser");
 
-        try {
-            wireTransferService.processWireTransfer(transferDto);
-            response.sendRedirect(request.getContextPath() + "/app/dashboard?message=WireTransferSuccessful");
-        } catch (InvalidTransferException | ResourceNotFoundException e) {
-            response.sendRedirect(request.getContextPath() + "/app/customer/wire_transfer?error=" + e.getMessage());
-        } catch (SQLException e) {
-            e.printStackTrace();
-            response.sendRedirect(request.getContextPath() + "/app/customer/wire_transfer?error=Database error. Please try again.");
-        }
-    }
+		try {
+			List<Account> userAccounts = accountService.getAccountsByUserId(currentUser.getUserId());
+			request.setAttribute("userAccounts", userAccounts);
+			RequestDispatcher dispatcher = request.getRequestDispatcher("/WEB-INF/jsp/customer/wire_transfer.jsp");
+			dispatcher.forward(request, response);
+		} catch (SQLException e) {
+			e.printStackTrace();
+			response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Database error.");
+		}
+	}
+
+	private void handleProcessWireTransfer(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		HttpSession session = request.getSession(false);
+		if (session == null || session.getAttribute("loggedInUser") == null) {
+			response.sendRedirect(request.getContextPath() + "/app/login");
+			return;
+		}
+		User currentUser = (User) session.getAttribute("loggedInUser");
+
+		WireTransferDTO transferDto = new WireTransferDTO();
+		transferDto.setUserId(currentUser.getUserId());
+		transferDto.setSenderAccountNumber(request.getParameter("senderAccountNumber"));
+		transferDto.setRecipientAccountNumber(request.getParameter("recipientAccountNumber"));
+		transferDto.setDescription(request.getParameter("description"));
+		try {
+			transferDto.setAmount(new BigDecimal(request.getParameter("amount")));
+		} catch (NumberFormatException e) {
+			response.sendRedirect(
+					request.getContextPath() + "/app/customer/wire_transfer?error=Invalid amount format.");
+			return;
+		}
+
+		try {
+			wireTransferService.processWireTransfer(transferDto);
+			response.sendRedirect(request.getContextPath() + "/app/dashboard?message=WireTransferSuccessful");
+		} catch (InvalidTransferException | ResourceNotFoundException e) {
+			response.sendRedirect(request.getContextPath() + "/app/customer/wire_transfer?error=" + e.getMessage());
+		} catch (SQLException e) {
+			e.printStackTrace();
+			response.sendRedirect(
+					request.getContextPath() + "/app/customer/wire_transfer?error=Database error. Please try again.");
+		}
+	}
 
 	// --- Admin Functionality Handlers (GET) ---
 
@@ -554,14 +548,54 @@ private void handleWireTransferPage(HttpServletRequest request, HttpServletRespo
 
 	// --- Common Account/Transaction Handlers (POST/PUT) ---
 
+	private void showAdminAccountCreatePage(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException, SQLException, ResourceNotFoundException {
+
+		// 1. Read the userId parameter from the URL
+		String userIdParam = request.getParameter("userId");
+		if (userIdParam == null || userIdParam.isEmpty()) {
+			response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Missing userId parameter");
+			return;
+		}
+
+		// 2. Convert it to int
+		int userId;
+		try {
+			userId = Integer.parseInt(userIdParam);
+		} catch (NumberFormatException e) {
+			response.sendError(HttpServletResponse.SC_BAD_REQUEST, "Invalid userId format");
+			return;
+		}
+
+		// 3. Fetch the user from the database using the ID
+		UserResponseDTO userDTO = userService.getUserById(userId); // <-- Make sure this method exists
+		if (userDTO == null) {
+			response.sendError(HttpServletResponse.SC_NOT_FOUND, "User not found");
+			return;
+		}
+
+		// 4. Set the user object in request or session scope
+		request.setAttribute("userDTO", userDTO); // or session.setAttribute if needed
+
+		request.getRequestDispatcher("/WEB-INF/jsp/admin/account_create.jsp").forward(request, response);
+	}
+
 	private void handleAccountCreation(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException, SQLException, ResourceNotFoundException {
 		HttpSession session = request.getSession(false);
-		if (session == null || session.getAttribute("loggedInUser") == null) {
-			response.sendRedirect(request.getContextPath() + "/app/login");
+		User loggedInUser = (session != null) ? (User) session.getAttribute("loggedInUser") : null;
+
+		if (loggedInUser == null || loggedInUser.getRole() != UserRole.ADMIN) {
+			response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access Denied. Admins only.");
 			return;
 		}
-		User currentUser = (User) session.getAttribute("loggedInUser");
+
+		String username = request.getParameter("username");
+		if (username == null || username.isEmpty()) {
+			throw new IllegalArgumentException("Username is missing from the request.");
+		}
+
+		UserResponseDTO currentUser = userService.getUserByUsername(username);
 
 		AccountCreationDTO accountDto = new AccountCreationDTO();
 		accountDto.setUserId(currentUser.getUserId());
@@ -597,7 +631,7 @@ private void handleWireTransferPage(HttpServletRequest request, HttpServletRespo
 			throw new IllegalArgumentException("Same Account type already exists.");
 		}
 		accountService.createAccount(accountDto);
-		response.sendRedirect(request.getContextPath() + "/app/dashboard?message=AccountCreated");
+		response.sendRedirect(request.getContextPath() + "/app/admin/users");
 	}
 
 	private void handleDeposit(HttpServletRequest request, HttpServletResponse response)
@@ -613,22 +647,23 @@ private void handleWireTransferPage(HttpServletRequest request, HttpServletRespo
 		String accountNumber = request.getParameter("accountNumber");
 		String amountStr = request.getParameter("amount");
 
-		if (accountNumber == null || accountNumber.trim().isEmpty() || amountStr == null || amountStr.trim().isEmpty()) {
+		if (accountNumber == null || accountNumber.trim().isEmpty() || amountStr == null
+				|| amountStr.trim().isEmpty()) {
 			throw new IllegalArgumentException("Account number and amount are required for deposit.");
 		}
 
 		try {
 			Account account = accountService.getAccountByAccountNumber(accountNumber);
-			
+
 			// Authorization check
 			if (account.getUserId() != loggedInUser.getUserId() && loggedInUser.getRole() != UserRole.ADMIN) {
 				throw new IllegalArgumentException("Access Denied: You can only deposit to your own accounts.");
 			}
-			
+
 			if (account.getStatus() != AccountStatus.ACTIVE) {
 				throw new IllegalArgumentException("Cannot deposit to an inactive account.");
 			}
-			
+
 			BigDecimal amount = new BigDecimal(amountStr);
 			if (amount.compareTo(BigDecimal.ZERO) <= 0) {
 				throw new IllegalArgumentException("Deposit amount must be positive.");
@@ -660,27 +695,28 @@ private void handleWireTransferPage(HttpServletRequest request, HttpServletRespo
 		String accountNumber = request.getParameter("accountNumber");
 		String amountStr = request.getParameter("amount");
 
-		if (accountNumber == null || accountNumber.trim().isEmpty() || amountStr == null || amountStr.trim().isEmpty()) {
+		if (accountNumber == null || accountNumber.trim().isEmpty() || amountStr == null
+				|| amountStr.trim().isEmpty()) {
 			throw new IllegalArgumentException("Account number and amount are required for withdrawal.");
 		}
 
 		try {
 			Account account = accountService.getAccountByAccountNumber(accountNumber);
-			
+
 			// Authorization check
 			if (account.getUserId() != loggedInUser.getUserId() && loggedInUser.getRole() != UserRole.ADMIN) {
 				throw new IllegalArgumentException("Access Denied: You can only withdraw from your own accounts.");
 			}
-			
+
 			if (account.getStatus() != AccountStatus.ACTIVE) {
 				throw new IllegalArgumentException("Cannot withdraw from an inactive account.");
 			}
-			
+
 			BigDecimal amount = new BigDecimal(amountStr);
 			if (amount.compareTo(BigDecimal.ZERO) <= 0) {
 				throw new IllegalArgumentException("Withdrawal amount must be positive.");
 			}
-			
+
 			TransactionDTO transactionDTO = new TransactionDTO();
 			transactionDTO.setAccountId(account.getAccountId());
 			transactionDTO.setAmount(amount);
@@ -708,8 +744,10 @@ private void handleWireTransferPage(HttpServletRequest request, HttpServletRespo
 		String targetAccountNumber = request.getParameter("targetAccountNumber");
 		String amountStr = request.getParameter("amount");
 
-		if (sourceAccountNumber == null || sourceAccountNumber.trim().isEmpty() || targetAccountNumber == null || targetAccountNumber.trim().isEmpty() || amountStr == null || amountStr.trim().isEmpty()) {
-			throw new IllegalArgumentException("Source account number, target account number, and amount are required for a transfer.");
+		if (sourceAccountNumber == null || sourceAccountNumber.trim().isEmpty() || targetAccountNumber == null
+				|| targetAccountNumber.trim().isEmpty() || amountStr == null || amountStr.trim().isEmpty()) {
+			throw new IllegalArgumentException(
+					"Source account number, target account number, and amount are required for a transfer.");
 		}
 
 		try {
@@ -720,7 +758,7 @@ private void handleWireTransferPage(HttpServletRequest request, HttpServletRespo
 			if (sourceAccount.getUserId() != loggedInUser.getUserId() && loggedInUser.getRole() != UserRole.ADMIN) {
 				throw new IllegalArgumentException("Access Denied: You can only transfer from your own accounts.");
 			}
-			
+
 			if (sourceAccount.getStatus() != AccountStatus.ACTIVE) {
 				throw new IllegalArgumentException("Cannot transfer from an inactive source account.");
 			}
@@ -732,7 +770,7 @@ private void handleWireTransferPage(HttpServletRequest request, HttpServletRespo
 			if (amount.compareTo(BigDecimal.ZERO) <= 0) {
 				throw new IllegalArgumentException("Transfer amount must be positive.");
 			}
-			
+
 			TransactionDTO transactionDTO = new TransactionDTO();
 			transactionDTO.setAccountId(sourceAccount.getAccountId()); // This is the source account
 			transactionDTO.setTargetAccountId(targetAccount.getAccountId());
@@ -746,6 +784,7 @@ private void handleWireTransferPage(HttpServletRequest request, HttpServletRespo
 			throw new IllegalArgumentException("Invalid amount format.");
 		}
 	}
+
 	private void showCloseAccountForm(HttpServletRequest request, HttpServletResponse response)
 			throws ServletException, IOException, SQLException, ResourceNotFoundException {
 		String accountIdStr = request.getParameter("accountId");

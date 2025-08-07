@@ -12,9 +12,9 @@
 <link rel="stylesheet"
 	href="${pageContext.request.contextPath}/css/tables.css">
 <link rel="stylesheet"
-	href="${pageContext.request.contextPath}/css/admin.css">
-<link rel="stylesheet"
 	href="${pageContext.request.contextPath}/css/style.css">
+<link rel="stylesheet"
+	href="${pageContext.request.contextPath}/css/admin.css">
 <link rel="stylesheet"
 	href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 
@@ -73,17 +73,19 @@
 					<td><%=user.getCreatedAt()%></td>
 					<td>
 						<%-- Example actions: View, Edit, Delete (requires more servlets/logic) --%>
-						<a href="${pageContext.request.contextPath}/app/admin/user/edit">Edit</a>
-						| <a
+						<a href="${pageContext.request.contextPath}/app/admin/users/edit?userId=<%=user.getUserId()%>">Edit</a>
+						| <aF
 						href="<%=request.getContextPath()%>/app/admin/accounts/create?userId=<%=user.getUserId()%>">Create
-							Account</a> | <a href="#">Delete</a> <%
- if (user.getStatus() == UserStatus.PENDING) {
- %> |
+							Account</a> | <a href="#"
+						onclick="confirmDelete(<%=user.getUserId()%>, '<%=user.getUsername()%>')">Delete</a>
+						<%
+						if (user.getStatus() == UserStatus.PENDING) {
+						%>
 						<form
 							action="${pageContext.request.contextPath}/app/admin/users/approve"
 							method="post" style="display: inline;">
 							<input type="hidden" name="userId" value="<%=user.getUserId()%>">
-							<button type="submit" class="approve-btn">Approve</button>
+							<button type="submit" class="btn">Approve</button>
 						</form> <%
  }
  %>
@@ -102,5 +104,25 @@
 		}
 		%>
 	</div>
+
+	<script>
+function confirmDelete(userId, username) {
+    if (confirm('Are you sure you want to delete user "' + username + '"? This action cannot be undone.')) {
+        // Create a form and submit it
+        var form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '${pageContext.request.contextPath}/app/admin/users/delete';
+        
+        var input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'userId';
+        input.value = userId;
+        
+        form.appendChild(input);
+        document.body.appendChild(form);
+        form.submit();
+    }
+}
+</script>
 </body>
 </html>

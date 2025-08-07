@@ -11,10 +11,12 @@ import com.mazebank.service.UserService;
 import com.mazebank.service.UserServiceImpl;
 import com.mazebank.service.WireTransferService;
 import com.mazebank.service.WireTransferServiceImpl;
+import com.mazebank.util.PasswordUtil;
 import com.mazebank.dto.UserResponseDTO;
 import com.mazebank.dto.WireTransferDTO;
 import com.mazebank.dto.AccountCreationDTO;
 import com.mazebank.dto.TransactionDTO;
+import com.mazebank.dto.UserEditDTO;
 import com.mazebank.exception.InsufficientFundsException;
 import com.mazebank.exception.InvalidTransferException;
 import com.mazebank.model.Account;
@@ -142,6 +144,14 @@ public class FrontControllerServlet extends HttpServlet {
 				System.out.println("Matched: /admin/users/approve");
 				handleApproveUser(request, response);
 				break;
+			case "/admin/users/edit":
+				System.out.println("Matched: /admin/users/edit");
+				handleUpdateUser(request, response);
+				break;
+			case "/admin/users/delete":
+				System.out.println("Matched: /admin/users/delete");
+				handleDeleteUser(request, response);
+				break;
 			case "/test":
 				System.out.println("Test endpoint reached!");
 				response.getWriter().write("Servlet is working!");
@@ -206,6 +216,9 @@ public class FrontControllerServlet extends HttpServlet {
 			// Admin-specific GET routes
 			case "/admin/users":
 				showAdminUserManagementPage(request, response);
+				break;
+			case "/admin/users/edit":
+				showEditUserPage(request, response);
 				break;
 			case "/admin/accounts":
 				showAdminAccountManagementPage(request, response);
@@ -308,6 +321,59 @@ public class FrontControllerServlet extends HttpServlet {
 			session.invalidate(); // Invalidate the session
 		}
 		response.sendRedirect(request.getContextPath() + "/app/login"); // Redirect to login page
+	}
+
+	private void handleUpdateUser(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException, SQLException, ResourceNotFoundException {
+
+		// Check admin authorization
+		HttpSession session = request.getSession(false);
+		User loggedInUser = (session != null) ? (User) session.getAttribute("loggedInUser") : null;
+		if (loggedInUser == null || loggedInUser.getRole() != UserRole.ADMIN) {
+			response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access denied");
+			return;
+		}
+
+		try {
+			// Get parameters
+			String userIdStr = request.getParameter("userId");
+			if (userIdStr == null || userIdStr.isEmpty()) {
+				throw new IllegalArgumentException("User ID is required.");
+			}
+
+			int userId = Integer.parseInt(userIdStr);
+			String username = request.getParameter("username");
+			String email = request.getParameter("email");
+			String firstName = request.getParameter("firstName");
+			String lastName = request.getParameter("lastName");
+			String currentPassword = request.getParameter("currentPassword");
+			String newPassword = request.getParameter("newPassword");
+			String confirmPassword = request.getParameter("confirmPassword");
+
+			// Let service handle all the business logic and validation
+			userService.updateUserWithPasswordValidation(userId, username, email, firstName, lastName, currentPassword,
+					newPassword, confirmPassword);
+
+			// Redirect with success message
+			response.sendRedirect(request.getContextPath() + "/app/admin/users?message=User updated successfully");
+
+		} catch (IllegalArgumentException e) {
+			// Handle validation errors - stay on the form page
+			int userId = Integer.parseInt(request.getParameter("userId"));
+			UserResponseDTO userResponse = userService.getUserById(userId);
+
+			// Create UserEditDTO from UserResponseDTO
+			UserEditDTO userEdit = new UserEditDTO(userResponse);
+
+			// Preserve form data that user entered
+			userEdit.setCurrentPassword(request.getParameter("currentPassword"));
+			userEdit.setNewPassword(request.getParameter("newPassword"));
+			userEdit.setConfirmPassword(request.getParameter("confirmPassword"));
+
+			request.setAttribute("user", userEdit);
+			request.setAttribute("errorMessage", e.getMessage());
+			request.getRequestDispatcher("/WEB-INF/jsp/admin/user_edit.jsp").forward(request, response);
+		}
 	}
 
 	// Example converter method
@@ -513,6 +579,29 @@ public class FrontControllerServlet extends HttpServlet {
 		List<UserResponseDTO> allUsers = userService.getAllUsers();
 		request.setAttribute("allUsers", allUsers);
 		request.getRequestDispatcher("/WEB-INF/jsp/admin/user_management.jsp").forward(request, response);
+	}
+
+	private void showEditUserPage(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException, SQLException, ResourceNotFoundException {
+
+		// Check admin authorization
+		HttpSession session = request.getSession(false);
+		User loggedInUser = (session != null) ? (User) session.getAttribute("loggedInUser") : null;
+		if (loggedInUser == null || loggedInUser.getRole() != UserRole.ADMIN) {
+			response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access denied");
+			return;
+		}
+
+		String userIdStr = request.getParameter("userId");
+		if (userIdStr == null || userIdStr.isEmpty()) {
+			throw new IllegalArgumentException("User ID is required to edit user.");
+		}
+
+		int userId = Integer.parseInt(userIdStr);
+		UserResponseDTO user = userService.getUserById(userId);
+
+		request.setAttribute("user", user);
+		request.getRequestDispatcher("/WEB-INF/jsp/admin/user_edit.jsp").forward(request, response);
 	}
 
 	private void showAdminAccountManagementPage(HttpServletRequest request, HttpServletResponse response)
@@ -783,6 +872,43 @@ public class FrontControllerServlet extends HttpServlet {
 			response.sendRedirect(request.getContextPath() + "/app/dashboard?message=TransferSuccess");
 		} catch (NumberFormatException e) {
 			throw new IllegalArgumentException("Invalid amount format.");
+		}
+	}
+
+	private void handleDeleteUser(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException, SQLException, ResourceNotFoundException {
+
+		String userIdStr = request.getParameter("userId");
+		if (userIdStr == null || userIdStr.isEmpty()) {
+			throw new IllegalArgumentException("User ID is required for deletion.");
+		}
+
+		int userId = Integer.parseInt(userIdStr);
+
+		HttpSession session = request.getSession(false);
+		User loggedInUser = (session != null) ? (User) session.getAttribute("loggedInUser") : null;
+		if (loggedInUser == null || loggedInUser.getRole() != UserRole.ADMIN) {
+			response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access denied");
+			return;
+		}
+
+		try {
+			// Check if user has any accounts
+			List<Account> userAccounts = accountService.getAccountsByUserId(userId);
+			if (!userAccounts.isEmpty()) {
+				response.sendRedirect(request.getContextPath()
+						+ "/app/admin/users?message=Cannot delete user with existing accounts");
+				return;
+			}
+
+			userService.deleteUser(userId);
+
+			// Redirect back to user management page with success message
+			response.sendRedirect(request.getContextPath() + "/app/admin/users?message=User deleted successfully");
+
+		} catch (ResourceNotFoundException e) {
+			// User not found
+			response.sendRedirect(request.getContextPath() + "/app/admin/users?message=User not found");
 		}
 	}
 

@@ -1,7 +1,7 @@
 package com.mazebank.model;
 
 public enum AccountType {
-    CHEQUING,
+	CHEQUING,
     SAVINGS; 
 
     public static AccountType fromString(String text) {

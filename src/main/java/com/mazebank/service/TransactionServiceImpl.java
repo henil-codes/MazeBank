@@ -28,6 +28,8 @@ import com.mazebank.util.NumberUtils;
 
 import java.math.BigDecimal;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -147,10 +149,24 @@ public class TransactionServiceImpl implements TransactionService {
 			}
 		}
 	}
-	
+
 	@Override
 	public List<Transaction> getTransactionsByAccountId(int accountId) throws SQLException, ResourceNotFoundException {
-	    return transactionDao.findTransactionsByAccountId(accountId);
+		return transactionDao.findTransactionsByAccountId(accountId);
+	}
+
+	public int getTotalTransactions() {
+		try (Connection conn = DBConnection.getConnection()) {
+			String sql = "SELECT COUNT(*) FROM transactions";
+			PreparedStatement stmt = conn.prepareStatement(sql);
+			ResultSet rs = stmt.executeQuery();
+			if (rs.next()) {
+				return rs.getInt(1);
+			}
+			return 0;
+		} catch (SQLException e) {
+			throw new RuntimeException("Database error while counting transactions", e);
+		}
 	}
 
 	@Override

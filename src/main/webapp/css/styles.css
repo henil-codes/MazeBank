@@ -1,4 +1,4 @@
-/* Reset and base styles */
+F/* Reset and base styles */
 * {
     margin: 0;
     padding: 0;
@@ -213,23 +213,42 @@ body {
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.btn:hover {
-    background: #ffcc00;
-    transform: translateY(-3px);
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+
+
+
+
+
+.btn-lgout {
+    color: var(--cibc-white);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    padding: 0.8rem 1rem;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+    background: var(--cibc-red);
+    border: 2px solid var(--cibc-white); /* Adds a white border for contrast */
+    font-weight: 600;
+    margin-top: auto; /* Pushes it to the bottom of the sidebar */
+    justify-content: center;
 }
 
-.btn-secondary {
-    background: transparent;
-    color: #0052cc;
-    border: 2px solid #0052cc;
+.btn-logout:hover {
+    background: var(--cibc-white);
+    color: var(--cibc-red);
+    border-color: var(--cibc-red); /* Changes border to red on hover */
 }
 
-.btn-secondary:hover {
-    background: #0052cc;
-    color: white;
-    transform: translateY(-3px);
+
+.btn-logout:focus {
+    outline: none; /* Removes default focus outline */
+    border-color: #0000ff; /* Blue focus outline to match the image */
+    box-shadow: 0 0 5px #0000ff; /* Subtle glow for accessibility */
 }
+
+
+
+
 
 /* Card grid */
 .card-grid {

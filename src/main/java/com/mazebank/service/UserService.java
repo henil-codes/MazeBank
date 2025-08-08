@@ -22,6 +22,8 @@ public interface UserService {
 
 	void approveUser(int userId) throws SQLException, ResourceNotFoundException;
 
+	int getTotalUsers();
+
 	boolean verifyCurrentPassword(int userId, String currentPassword) throws SQLException, ResourceNotFoundException;
 
 	void updateUserWithPasswordValidation(int userId, String username, String email, String firstName, String lastName,

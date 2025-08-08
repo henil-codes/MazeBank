@@ -75,7 +75,7 @@ body {
 }
 
 .sidebar-menu a:hover {
-    background: #3b82f6;
+   background: #2563eb;
     color: #ffffff;
 }
 
@@ -85,12 +85,12 @@ body {
 }
 
 .sidebar-logout-link a {
-    background: #dc2626;
-    color: #ffffff;
+  color: white
 }
 
 .sidebar-logout-link a:hover {
-    background: #b91c1c;
+     background: #2563eb;
+    color: #ffffff;
 }
 
 .main-content {

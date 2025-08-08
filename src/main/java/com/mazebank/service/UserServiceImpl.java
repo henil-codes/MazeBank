@@ -8,17 +8,27 @@ import com.mazebank.model.HolderType;
 import com.mazebank.model.User;
 import com.mazebank.model.UserRole;
 import com.mazebank.model.UserStatus;
+import com.mazebank.util.DBConnection;
 import com.mazebank.util.PasswordUtil;
 
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.LocalDateTime;
+import javax.sql.DataSource;
+import java.util.ArrayList;
 import java.util.List;
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class UserServiceImpl implements UserService {
-
+	private DataSource dataSource;
 	private UserDao userDao;
+
+	public void UserDAO(DataSource dataSource) {
+		this.dataSource = dataSource;
+	}
 
 	public UserServiceImpl() {
 		this.userDao = new UserDaoImpl();
@@ -61,6 +71,20 @@ public class UserServiceImpl implements UserService {
 		Optional<User> userOptional = userDao.getById(userId);
 		User user = userOptional.orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + userId));
 		return mapUserToUserResponseDTO(user);
+	}
+
+	public int getTotalUsers() {
+		try (Connection conn = DBConnection.getConnection()) {
+			String sql = "SELECT COUNT(*) FROM users";
+			PreparedStatement stmt = conn.prepareStatement(sql);
+			ResultSet rs = stmt.executeQuery();
+			if (rs.next()) {
+				return rs.getInt(1);
+			}
+			return 0;
+		} catch (SQLException e) {
+			throw new RuntimeException("Database error while counting users", e);
+		}
 	}
 
 	@Override

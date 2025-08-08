@@ -124,36 +124,7 @@
                     <i class="fas fa-bolt"></i> Quick Actions
                 </h2>
                 <div class="quick-actions-grid">
-                    <div class="form-card">
-                        <h3>Create New Account</h3>
-                        <form action="${pageContext.request.contextPath}/app/accounts/create" method="post">
-                            <div class="form-group">
-                                <label for="accountType">Account Type</label>
-                                <select id="accountType" name="accountType" required>
-                                    <%
-                                    for (AccountType type : AccountType.values()) {
-                                    %>
-                                    <option value="<%=type.name()%>"><%=type.name()%></option>
-                                    <%
-                                    }
-                                    %>
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="initialBalance">Initial Balance</label>
-                                <input type="number" id="initialBalance" name="initialBalance" step="0.01" min="0" value="0.00" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="overdraftLimit">Overdraft Limit</label>
-                                <input type="number" id="overdraftLimit" name="overdraftLimit" step="0.01" min="0" value="0.00" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="maxTransactionAmount">Max Transaction Amount</label>
-                                <input type="number" id="maxTransactionAmount" name="maxTransactionAmount" step="0.01" min="0" value="10000.00" required>
-                            </div>
-                            <button type="submit" class="btn btn-primary">Create Account</button>
-                        </form>
-                    </div>
+                    
                     <div class="form-card">
                         <h3>Wire Transfer</h3>
                         <p>Transfer funds to another account securely.</p>

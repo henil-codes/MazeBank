@@ -484,10 +484,19 @@ public class FrontControllerServlet extends HttpServlet {
 			session.setAttribute("loggedInUser", updatedUser);
 
 			if (updatedUser.getRole() == UserRole.ADMIN) {
-				// Admin dashboard requires specific data loading
-				List<UserResponseDTO> allUsers = userService.getAllUsers(); // Example data for admin dashboard
-				request.setAttribute("allUsers", allUsers);
-				request.getRequestDispatcher("/WEB-INF/jsp/admin/dashboard.jsp").forward(request, response);
+				// Fetch counts for admin dashboard
+			    int totalUsers = userService.getTotalUsers();
+			    int totalAccounts = accountService.getTotalAccounts();
+			    int totalTransactions = transactionService.getTotalTransactions();
+
+			    // Set attributes for JSP
+			    request.setAttribute("totalUsers", totalUsers);
+			    request.setAttribute("totalAccounts", totalAccounts);
+			    request.setAttribute("totalTransactions", totalTransactions);
+
+			    List<UserResponseDTO> allUsers = userService.getAllUsers();
+			    request.setAttribute("allUsers", allUsers);
+			    request.getRequestDispatcher("/WEB-INF/jsp/admin/dashboard.jsp").forward(request, response);
 			} else if (updatedUser.getRole() == UserRole.CUSTOMER) {
 				// Customer dashboard requires specific data loading
 				List<Account> userAccounts = accountService.getAccountsByUserId(updatedUser.getUserId());

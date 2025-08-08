@@ -13,4 +13,5 @@ public interface TransactionService {
     void processWithdrawal(TransactionDTO transactionDTO) throws SQLException, ResourceNotFoundException, InsufficientFundsException, IllegalArgumentException;
     void processTransfer(TransactionDTO transactionDTO) throws SQLException, ResourceNotFoundException, InsufficientFundsException, IllegalArgumentException;
     List<Transaction> getTransactionsByAccountId(int accountId) throws SQLException, ResourceNotFoundException;
+    int getTotalTransactions();
 }

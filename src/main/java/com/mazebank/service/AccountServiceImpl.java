@@ -18,6 +18,8 @@ import com.mazebank.util.NumberUtils; // New import
 
 import java.math.BigDecimal;
 import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -125,6 +127,19 @@ public class AccountServiceImpl implements AccountService {
 				.orElseThrow(() -> new ResourceNotFoundException("Account not found with ID: " + accountId));
 	}
 
+	public int getTotalAccounts() {
+	    try (Connection conn = DBConnection.getConnection()) {
+	        String sql = "SELECT COUNT(*) FROM accounts";
+	        PreparedStatement stmt = conn.prepareStatement(sql);
+	        ResultSet rs = stmt.executeQuery();
+	        if (rs.next()) {
+	            return rs.getInt(1);
+	        }
+	        return 0;
+	    } catch (SQLException e) {
+	        throw new RuntimeException("Database error while counting accounts", e);
+	    }
+	}
 	@Override
 	public Account getAccountByAccountNumber(String accountNumber) throws SQLException, ResourceNotFoundException {
 		return accountDao.findByAccountNumber(accountNumber)
@@ -152,6 +167,8 @@ public class AccountServiceImpl implements AccountService {
 		// DB handles updated_at
 		accountDao.update(account);
 	}
+	
+	
 
 	@Override
 	public boolean hasAccountOfType(int userId, String accountType) throws SQLException {

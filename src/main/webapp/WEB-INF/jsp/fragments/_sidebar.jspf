@@ -25,7 +25,7 @@
             <li><a href="${pageContext.request.contextPath}/app/admin/users"><i class="fas fa-users"></i>Manage Users</a></li>
             <li><a href="${pageContext.request.contextPath}/app/admin/accounts"><i class="fas fa-file-invoice-dollar"></i>Manage Accounts</a></li>
         <% } %>
-        <li class="sidebar-logout-link"><a href="${pageContext.request.contextPath}/app/logout"><i class="fas fa-sign-out-alt"></i>Logout</a></li>
+        <li class="sidebarlogout-link"><a href="${pageContext.request.contextPath}/app/logout"><i class="fas fa-sign-out-alt"></i>Logout</a></li>
     </ul>
 </div>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">

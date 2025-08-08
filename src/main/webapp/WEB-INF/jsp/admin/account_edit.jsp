@@ -7,7 +7,7 @@
 <meta charset="UTF-8">
 <title>Admin - Edit Account</title>
 <link rel="stylesheet"
-	href="${pageContext.request.contextPath}/css/style.css">
+	href="${pageContext.request.contextPath}/css/styles.css">
 <link rel="stylesheet"
 	href="${pageContext.request.contextPath}/css/admin.css">
 <link rel="stylesheet"
@@ -36,7 +36,7 @@
 					<label for="accountType">Account Type</label> <select
 						id="accountType" name="accountType" required>
 						<option value="CHECKING"
-							${account.accountType.name() eq 'CHECKING' ? 'selected' : ''}>Checking</option>
+							${account.accountType.name() eq 'CHEQUING' ? 'selected' : ''}>CHEQUING</option>
 						<option value="SAVINGS"
 							${account.accountType.name() eq 'SAVINGS' ? 'selected' : ''}>Savings</option>
 					</select>

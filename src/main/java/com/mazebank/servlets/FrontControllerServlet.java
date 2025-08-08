@@ -224,6 +224,7 @@ public class FrontControllerServlet extends HttpServlet {
 			case "/customer/profile":
 			    showCustomerProfile(request, response);
 			    break;
+			    
 			// Admin-specific GET routes
 			case "/admin/users":
 				showAdminUserManagementPage(request, response);

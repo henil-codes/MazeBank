@@ -19,7 +19,7 @@
 	href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 </head>
 <body class="admin-body">
-    	<%@ include file="../fragments/_admin_sidebar.jspf"%>
+	<%@ include file="../fragments/_admin_sidebar.jspf"%>
 
 	<div class="admin-main-content">
 		<h2>Account Management</h2>
@@ -68,17 +68,17 @@
 					<td><%=NumberUtils.formatCurrency(account.getOverdraftLimit())%></td>
 					<td><%=NumberUtils.formatCurrency(account.getMaxTransactionAmount())%></td>
 					<td><%=account.getStatus().name()%></td>
-					<td>
-						<%-- Example actions: View, Edit, Close (requires more servlets/logic) --%>
-						<a href="#">View</a> | <a href="${pageContext.request.contextPath}/app/admin/accounts/edit">Edit</a> | <%
-						if (account.getStatus().name().equals("ACTIVE") ) {
-						%>
-						<a
-						href="${pageContext.request.contextPath}/app/accounts/close?accountId=<%= account.getAccountId() %>">Close</a>
+					<td><a
+						href="${pageContext.request.contextPath}/app/admin/accounts/view?id=<%=account.getAccountId()%>">View</a>
+						| <a
+						href="${pageContext.request.contextPath}/app/admin/accounts/edit?accountId=<%=account.getAccountId()%>">Edit</a>
+						| <%
+					if (account.getStatus().name().equals("ACTIVE")) {
+					%> <a
+						href="${pageContext.request.contextPath}/app/accounts/close?accountId=<%=account.getAccountId()%>">Close</a>
 						<%
 						}
-						%>
-					</td>
+						%></td>
 				</tr>
 				<%
 				}

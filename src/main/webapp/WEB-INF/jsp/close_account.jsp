@@ -41,9 +41,6 @@
         <% if (account != null) { %>
             <p>You are about to close account: <strong><%= account.getAccountNumber() %></strong>.</p>
             <p>Current Balance: <strong><%= NumberUtils.formatCurrency(account.getBalance()) %></strong></p>
-            <div class="warning-message">
-                <strong>Warning:</strong> The account balance must be zero to proceed with closing.
-            </div>
 
             <% if (account.getBalance().compareTo(java.math.BigDecimal.ZERO) == 0) { %>
                 <form action="${pageContext.request.contextPath}/app/accounts/close" method="post">
@@ -53,7 +50,7 @@
                     <button type="submit" class="btn btn-confirm-close">Confirm Close Account</button>
                 </form>
             <% } else { %>
-                <div class="alert alert-error">
+                <div class="warning-message">
                     <p>Cannot close account. Please ensure the balance is zero.</p>
                 </div>
             <% } %>

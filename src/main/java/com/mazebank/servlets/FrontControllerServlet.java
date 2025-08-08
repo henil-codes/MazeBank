@@ -140,6 +140,10 @@ public class FrontControllerServlet extends HttpServlet {
 				System.out.println("Matched: /accounts/create");
 				handleAccountCreation(request, response);
 				break;
+			case "/admin/accounts/edit":
+			    System.out.println("Matched: /admin/accounts/edit");
+			    handleUpdateAccount(request, response);
+			    break;
 			case "/admin/users/approve":
 				System.out.println("Matched: /admin/users/approve");
 				handleApproveUser(request, response);
@@ -231,6 +235,9 @@ public class FrontControllerServlet extends HttpServlet {
 						.getRequestDispatcher("/WEB-INF/jsp/customer/account_details.jsp");
 				accountView.forward(request, response);
 				break;
+			case "/admin/accounts/edit":
+			    showEditAccountPage(request, response);
+			    break;
 			case "/accounts/close": // This is a GET to show the form, actual close is PUT
 				showCloseAccountForm(request, response);
 				break;
@@ -515,6 +522,119 @@ public class FrontControllerServlet extends HttpServlet {
 		request.setAttribute("transactions", transactions);
 
 		request.getRequestDispatcher("/WEB-INF/jsp/customer/account_details.jsp").forward(request, response);
+	}
+	
+	private void showEditAccountPage(HttpServletRequest request, HttpServletResponse response)
+	        throws ServletException, IOException, SQLException, ResourceNotFoundException {
+	    
+	    // Check admin authorization
+	    HttpSession session = request.getSession(false);
+	    User loggedInUser = (session != null) ? (User) session.getAttribute("loggedInUser") : null;
+	    if (loggedInUser == null || loggedInUser.getRole() != UserRole.ADMIN) {
+	        response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access denied");
+	        return;
+	    }
+
+	    String accountIdStr = request.getParameter("accountId");
+	    if (accountIdStr == null || accountIdStr.isEmpty()) {
+	        throw new IllegalArgumentException("Account ID is required to edit account.");
+	    }
+
+	    try {
+	        int accountId = Integer.parseInt(accountIdStr);
+	        Account account = accountService.getAccountById(accountId);
+	        
+	        if (account == null) {
+	            throw new ResourceNotFoundException("Account not found with ID: " + accountId);
+	        }
+	        
+	        UserResponseDTO userDto = userService.getUserById(account.getUserId());
+	        
+	        request.setAttribute("account", account);
+	        request.setAttribute("user", userDto);
+	        request.getRequestDispatcher("/WEB-INF/jsp/admin/account_edit.jsp").forward(request, response);
+	        
+	    } catch (NumberFormatException e) {
+	        throw new IllegalArgumentException("Invalid account ID format: " + accountIdStr);
+	    }
+	}
+	
+	private void handleUpdateAccount(HttpServletRequest request, HttpServletResponse response)
+	        throws ServletException, IOException, SQLException, ResourceNotFoundException {
+	    
+	    // Check admin authorization
+	    HttpSession session = request.getSession(false);
+	    User loggedInUser = (session != null) ? (User) session.getAttribute("loggedInUser") : null;
+	    if (loggedInUser == null || loggedInUser.getRole() != UserRole.ADMIN) {
+	        response.sendError(HttpServletResponse.SC_FORBIDDEN, "Access denied");
+	        return;
+	    }
+
+	    try {
+	        // Get parameters from the form
+	        String accountIdStr = request.getParameter("accountId");
+	        if (accountIdStr == null || accountIdStr.isEmpty()) {
+	            throw new IllegalArgumentException("Account ID is required.");
+	        }
+
+	        int accountId = Integer.parseInt(accountIdStr);
+	        String accountTypeStr = request.getParameter("accountType");
+	        String balanceStr = request.getParameter("balance");
+	        String statusStr = request.getParameter("status");
+
+	        // Validate required fields
+	        if (accountTypeStr == null || accountTypeStr.isEmpty()) {
+	            throw new IllegalArgumentException("Account type is required.");
+	        }
+	        if (balanceStr == null || balanceStr.isEmpty()) {
+	            throw new IllegalArgumentException("Balance is required.");
+	        }
+	        if (statusStr == null || statusStr.isEmpty()) {
+	            throw new IllegalArgumentException("Status is required.");
+	        }
+
+	        // Parse and validate values
+	        AccountType accountType = AccountType.valueOf(accountTypeStr);
+	        BigDecimal balance = new BigDecimal(balanceStr);
+	        AccountStatus status = AccountStatus.valueOf(statusStr);
+
+	        // Validate balance is not negative
+	        if (balance.compareTo(BigDecimal.ZERO) < 0) {
+	            throw new IllegalArgumentException("Balance cannot be negative.");
+	        }
+
+	        // Get the existing account to ensure it exists and preserve other fields
+	        Account existingAccount = accountService.getAccountById(accountId);
+	        if (existingAccount == null) {
+	            throw new ResourceNotFoundException("Account not found with ID: " + accountId);
+	        }
+
+	        // Update only the editable fields, preserve others
+	        existingAccount.setAccountType(accountType);
+	        existingAccount.setBalance(balance);
+	        existingAccount.setStatus(status);
+	        // Keep original: userId, accountNumber, overdraftLimit, maxTransactionAmount, createdAt
+
+	        // Call existing service method to update account
+	        accountService.updateAccount(existingAccount);
+
+	        // Redirect with success message
+	        response.sendRedirect(request.getContextPath() + 
+	            "/app/admin/accounts?message=Account updated successfully");
+
+	    } catch (IllegalArgumentException e) {
+	        // Handle validation errors - stay on the form page
+	        String accountIdStr = request.getParameter("accountId");
+	        if (accountIdStr != null && !accountIdStr.isEmpty()) {
+	            int accountId = Integer.parseInt(accountIdStr);
+	            Account account = accountService.getAccountById(accountId);
+	            request.setAttribute("account", account);
+	        }
+	        
+	        request.setAttribute("errorMessage", e.getMessage());
+	        request.getRequestDispatcher("/WEB-INF/jsp/admin/account_edit.jsp").forward(request, response);
+	        
+	    }
 	}
 
 	private void handleWireTransferPage(HttpServletRequest request, HttpServletResponse response)
@@ -893,14 +1013,18 @@ public class FrontControllerServlet extends HttpServlet {
 		}
 
 		try {
-			// Check if user has any accounts
+			// Check if user has any accounts first
 			List<Account> userAccounts = accountService.getAccountsByUserId(userId);
 			if (!userAccounts.isEmpty()) {
-				response.sendRedirect(request.getContextPath()
-						+ "/app/admin/users?message=Cannot delete user with existing accounts");
+				// Use 'error' parameter instead of 'message' to clearly indicate this is an
+				// error
+				response.sendRedirect(request.getContextPath() + "/app/admin/users?error=Cannot delete user: User has "
+						+ userAccounts.size()
+						+ " active account(s). Please close all accounts before deleting the user.");
 				return;
 			}
 
+			// Only delete if no accounts exist
 			userService.deleteUser(userId);
 
 			// Redirect back to user management page with success message
@@ -908,7 +1032,11 @@ public class FrontControllerServlet extends HttpServlet {
 
 		} catch (ResourceNotFoundException e) {
 			// User not found
-			response.sendRedirect(request.getContextPath() + "/app/admin/users?message=User not found");
+			response.sendRedirect(request.getContextPath() + "/app/admin/users?error=User not found");
+		} catch (Exception e) {
+			// Any other error during deletion
+			response.sendRedirect(
+					request.getContextPath() + "/app/admin/users?error=Failed to delete user: " + e.getMessage());
 		}
 	}
 

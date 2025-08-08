@@ -11,7 +11,7 @@
 <link rel="stylesheet"
 	href="${pageContext.request.contextPath}/css/admin.css">
 <link rel="stylesheet"
-	href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+	href="https://cdnjs.cloudflare.com/ajax/lib	s/font-awesome/5.15.4/css/all.min.css">
 </head>
 <body class="admin-body">
 	<%@ include file="../fragments/_admin_sidebar.jspf"%>
@@ -30,7 +30,7 @@
 				</div>
 				<div class="form-group">
 					<label for="user">Account Holder</label> <input type="text"
-						id="user" name="user" value="${account.user.username}" disabled>
+						id="user" name="user" value="${user.username}" disabled>
 				</div>
 				<div class="form-group">
 					<label for="accountType">Account Type</label> <select

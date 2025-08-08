@@ -25,12 +25,32 @@
 	<div class="admin-main-content">
 		<h2>User Management</h2>
 
-		<%-- Display messages --%>
+		<%-- Display success messages --%>
 		<%
 		String message = request.getParameter("message");
 		if (message != null) {
 		%>
-		<p style="color: blue;"><%=message%></p>
+		<div class="alert alert-success"
+			style="color: green; background-color: #d4edda; padding: 10px; margin: 10px 0; border: 1px solid #c3e6cb; border-radius: 4px;">
+			<p>
+				<i class="fas fa-check-circle"></i>
+				<%=message%></p>
+		</div>
+		<%
+		}
+		%>
+
+		<%-- Display error messages --%>
+		<%
+		String error = request.getParameter("error");
+		if (error != null) {
+		%>
+		<div class="alert alert-error"
+			style="color: #721c24; background-color: #f8d7da; padding: 10px; margin: 10px 0; border: 1px solid #f5c6cb; border-radius: 4px;">
+			<p>
+				<i class="fas fa-exclamation-triangle"></i>
+				<%=error%></p>
+		</div>
 		<%
 		}
 		%>
@@ -73,9 +93,10 @@
 					<td><%=user.getCreatedAt()%></td>
 					<td>
 						<%-- Example actions: View, Edit, Delete (requires more servlets/logic) --%>
-						<a href="${pageContext.request.contextPath}/app/admin/users/edit?userId=<%=user.getUserId()%>">Edit</a>
-						| <aF
-						href="<%=request.getContextPath()%>/app/admin/accounts/create?userId=<%=user.getUserId()%>">Create
+						<a
+						href="${pageContext.request.contextPath}/app/admin/users/edit?userId=<%=user.getUserId()%>">Edit</a>
+						| <a
+						href="${pageContext.request.contextPath}/app/admin/accounts/create?userId=<%=user.getUserId()%>">Create
 							Account</a> | <a href="#"
 						onclick="confirmDelete(<%=user.getUserId()%>, '<%=user.getUsername()%>')">Delete</a>
 						<%
@@ -89,6 +110,7 @@
 						</form> <%
  }
  %>
+
 					</td>
 				</tr>
 				<%

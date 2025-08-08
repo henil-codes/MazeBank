@@ -5,11 +5,28 @@
     <meta charset="UTF-8">
     <title>Access Denied</title>
     <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/style.css">
+    <style>
+        .unauthorized-container {
+            max-width: 600px;
+            margin: 4rem auto;
+            padding: 2rem;
+            background-color: var(--cibc-white);
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+            text-align: center;
+        }
+        .unauthorized-message {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: var(--cibc-red);
+            margin-bottom: 2rem;
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
+    <div class="unauthorized-container">
         <h2>Access Denied!</h2>
-        <p style="color: red;">
+        <p class="unauthorized-message">
             <% if (request.getAttribute("errorMessage")!= null) { %>
                 <%= request.getAttribute("errorMessage") %>
             <% } else { %>

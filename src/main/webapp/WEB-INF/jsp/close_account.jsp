@@ -6,30 +6,59 @@
 <head>
     <meta charset="UTF-8">
     <title>Close Account</title>
-    <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/close_account.css">
+    <link rel="stylesheet" type="text/css" href="${pageContext.request.contextPath}/css/style.css">
+    <style>
+        .close-account-container {
+            max-width: 600px;
+            margin: 4rem auto;
+            padding: 2rem;
+            background-color: var(--cibc-white);
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+            text-align: center;
+        }
+        .warning-message {
+            color: #dc3545;
+            font-weight: bold;
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            padding: 1rem;
+            border-radius: 4px;
+            margin-bottom: 1.5rem;
+        }
+        .btn-confirm-close {
+            background-color: #dc3545;
+        }
+        .btn-confirm-close:hover {
+            background-color: #c82333;
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
+    <div class="close-account-container">
         <h2>Close Account</h2>
         <% Account account = (Account) request.getAttribute("account"); %>
         <% if (account != null) { %>
-            <p>You are about to close account: <strong><%= account.getAccountNumber() %> (ID: <%= account.getAccountId() %>)</strong>.</p>
+            <p>You are about to close account: <strong><%= account.getAccountNumber() %></strong>.</p>
             <p>Current Balance: <strong><%= NumberUtils.formatCurrency(account.getBalance()) %></strong></p>
-            <p style="color: red;"><strong>Warning:</strong> The account balance must be zero to proceed with closing.</p>
 
             <% if (account.getBalance().compareTo(java.math.BigDecimal.ZERO) == 0) { %>
                 <form action="${pageContext.request.contextPath}/app/accounts/close" method="post">
-                    <input type="hidden" name="_method" value="PUT"> <%-- Simulating PUT with POST --%>
+                    <input type="hidden" name="_method" value="PUT">
                     <input type="hidden" name="accountId" value="<%= account.getAccountId() %>">
                     <p>Are you sure you want to close this account?</p>
-                    <input type="submit" value="Confirm Close Account">
+                    <button type="submit" class="btn btn-confirm-close">Confirm Close Account</button>
                 </form>
             <% } else { %>
-                <p style="color: red;">Cannot close account. Please ensure the balance is zero.</p>
+                <div class="warning-message">
+                    <p>Cannot close account. Please ensure the balance is zero.</p>
+                </div>
             <% } %>
-            <p><a href="${pageContext.request.contextPath}/app/dashboard">Cancel and Go Back to Dashboard</a></p>
+            <p class="mt-4"><a href="${pageContext.request.contextPath}/app/dashboard">Cancel and Go Back to Dashboard</a></p>
         <% } else { %>
-            <p>Account not found for closing.</p>
+            <div class="alert alert-error">
+                <p>Account not found for closing.</p>
+            </div>
             <p><a href="${pageContext.request.contextPath}/app/dashboard">Back to Dashboard</a></p>
         <% } %>
     </div>

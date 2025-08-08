@@ -1,0 +1,37 @@
+.logo {
+    display: flex;
+    align-items: center;
+    padding: 5px 10px; /* Added padding for a polished look */
+}
+
+.logo a {
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    color: inherit; /* Inherit header color */
+}
+
+.logo img {
+    width: 68px; /* Slightly larger for better visibility */
+    height: 55px;
+    margin-right: 12px; /* Increased for better spacing */
+    transition: all 0.3s ease;
+    border-radius: 5px; /* Slight rounding for modern feel */
+}
+
+.logo span {
+    font-size: 1.8rem; /* Slightly larger for prominence */
+    font-weight: 800; /* Bolder for authority */
+    color: #ffd700; /* Gold for prestige, matching your theme */
+    text-transform: uppercase; /* Uppercase for a professional touch */
+    letter-spacing: 1px; /* Improved readability */
+    transition: color 0.3s ease;
+}
+
+.logo a:hover img {
+    transform: scale(1.05); /* Subtle hover effect */
+}
+
+.logo a:hover span {
+    color: #ffffff; /* White on hover for contrast */
+}

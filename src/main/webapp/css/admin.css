@@ -1,0 +1,316 @@
+:root {
+    --cibc-darker: #2c0b0e;
+    --cibc-white: #ffffff;
+    --cibc-red: #c8102e;
+    --cibc-light-red: #e63950;
+    --cibc-gray: #f4f4f4;
+    --shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+    --border-radius: 8px;
+    --transition: all 0.3s ease-in-out;
+}
+
+body.admin-body {
+    display: flex;
+    flex-direction: row;
+    background: var(--cibc-gray);
+    min-height: 100vh;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    line-height: 1.6;
+    color: var(--cibc-darker);
+}
+
+.admin-sidebar {
+    width: 280px;
+    background: var(--cibc-red);
+    color: var(--cibc-white);
+    padding: 2.5rem 1.5rem;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 4px 0 12px rgba(0, 0, 0, 0.15);
+    transition: var(--transition);
+}
+
+.admin-sidebar-header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.admin-sidebar-logo {
+    width: 140px;
+    margin-bottom: 1.5rem;
+    filter: brightness(0) invert(1);
+}
+
+.admin-sidebar-header h3 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    color: var(--cibc-white);
+}
+
+.admin-sidebar-menu {
+    list-style: none;
+    flex-grow: 1;
+    padding: 0;
+}
+
+.admin-sidebar-menu li {
+    margin-bottom: 1rem;
+}
+
+.admin-sidebar-menu a {
+    color: var(--cibc-white);
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    padding: 0.9rem 1.2rem;
+    border-radius: var(--border-radius);
+    transition: var(--transition);
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.admin-sidebar-menu a i {
+    margin-right: 1.2rem;
+    font-size: 1.3rem;
+}
+
+.admin-sidebar-menu a:hover,
+.admin-sidebar-menu a.active {
+    background: var(--cibc-white);
+    color: var(--cibc-red);
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.admin-main-content {
+    flex-grow: 1;
+    padding: 3.5rem 4rem;
+    background: var(--cibc-white);
+    overflow-y: auto;
+    border-radius: var(--border-radius);
+    box-shadow: -4px 0 12px rgba(0, 0, 0, 0.08);
+}
+
+.dashboard-header {
+    margin-bottom: 2.5rem;
+}
+
+.dashboard-header h1 {
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: var(--cibc-darker);
+    margin-bottom: 0.75rem;
+    letter-spacing: -0.5px;
+}
+
+.dashboard-header p {
+    color: var(--cibc-darker);
+    font-size: 1.15rem;
+    opacity: 0.85;
+}
+
+.dashboard-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2rem;
+    margin-bottom: 3rem;
+}
+
+.stat-card {
+    background: var(--cibc-red);
+    padding: 2rem;
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    color: var(--cibc-white);
+    transition: var(--transition);
+}
+
+.stat-card:hover {
+    transform: translateY(-3px);
+}
+
+.stat-icon {
+    font-size: 2.5rem;
+    color: var(--cibc-white);
+    opacity: 0.9;
+}
+
+.stat-info h3 {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: var(--cibc-white);
+    margin-bottom: 0.75rem;
+}
+
+.stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--cibc-white);
+}
+
+.admin-card-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(380px, 1fr));
+    gap: 2.5rem;
+}
+
+.admin-card {
+    background: var(--cibc-white);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+    transition: var(--transition);
+}
+
+.admin-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+}
+
+.card-header {
+    background: var(--cibc-red);
+    padding: 1.2rem 1.5rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.card-header h3 {
+    margin: 0;
+    font-size: 1.4rem;
+    font-weight: 600;
+    color: var(--cibc-white);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.card-body {
+    padding: 2rem;
+}
+
+.card-body p {
+    color: var(--cibc-darker);
+    margin-bottom: 1.75rem;
+    font-size: 1.05rem;
+}
+
+.btn {
+    display: flex;
+    align-items: center;
+    padding: 0.9rem 1.75rem;
+    border-radius: var(--border-radius);
+    text-decoration: none;
+    font-weight: 500;
+    font-size: 1rem;
+    transition: var(--transition);
+}
+
+.btn-primary {
+    background: var(--cibc-red);
+    color: var(--cibc-white);
+}
+
+.btn-primary:hover {
+background: var(--cibc-light-red);
+    transform: scale(1.05);
+    box-shadow: var(--shadow);
+    color: var(--cibc-white);
+    opacity: 0.95;
+}
+
+
+.divider {
+    border: 0;
+    height: 1px;
+    background: var(--cibc-darker);
+    opacity: 0.2;
+    margin: 2.5rem 0;
+}
+
+.data-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 2.5rem 0;
+    background: var(--cibc-white);
+    box-shadow: var(--shadow);
+    border-radius: var(--border-radius);
+}
+
+.data-table th,
+.data-table td {
+    padding: 1.3rem;
+    text-align: left;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.data-table thead {
+    background: var(--cibc-red);
+    color: var(--cibc-white);
+}
+
+.data-table tbody tr:hover {
+    background: var(--cibc-gray);
+}
+
+.action-link-delete {
+    color: var(--cibc-red);
+    font-weight: 600;
+    text-decoration: none;
+}
+
+.action-link-delete:hover {
+    color: var(--cibc-light-red);
+    text-decoration: underline;
+}
+
+.btn-delete {
+    background: var(--cibc-red);
+    color: var(--cibc-white);
+    padding: 0.7rem 1.3rem;
+}
+
+.btn-delete:hover {
+    background: var(--cibc-light-red);
+    box-shadow: var(--shadow);
+}
+
+@media (max-width: 768px) {
+    .admin-sidebar {
+        width: 220px;
+    }
+
+    .admin-main-content {
+        padding: 2rem;
+    }
+
+    .dashboard-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .admin-card-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 576px) {
+    .admin-sidebar {
+        width: 100%;
+        position: fixed;
+        height: 100%;
+        z-index: 1000;
+        transform: translateX(-100%);
+        transition: var(--transition);
+    }
+
+    .admin-sidebar.active {
+        transform: translateX(0);
+    }
+
+    .admin-main-content {
+        padding: 1.5rem;
+        border-radius: 0;
+    }
+}

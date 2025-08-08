@@ -6,17 +6,17 @@ import com.mazebank.model.UserRole;
 import com.mazebank.model.UserStatus;
 import com.mazebank.service.UserService;
 import com.mazebank.service.UserServiceImpl;
-import javax.servlet.RequestDispatcher;
-import javax.servlet.ServletException;
-import javax.servlet.annotation.WebServlet; // Keep if you use @WebServlet for other servlets
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.RequestDispatcher;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet; // Keep if you use @WebServlet for other servlets
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 import java.io.IOException;
 import java.sql.SQLException;
 
-@WebServlet("/register")
+@WebServlet("/app/register")
 public class RegistrationServlet extends HttpServlet {
 
     private UserService userService;
@@ -29,8 +29,9 @@ public class RegistrationServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        // Simply forward to the registration JSP
+    	// Simply forward to the registration JSP
         request.getRequestDispatcher("/WEB-INF/jsp/register.jsp").forward(request, response);
+
     }
 
     @Override
@@ -59,7 +60,7 @@ public class RegistrationServlet extends HttpServlet {
         try {
             userService.registerUser(user);
             request.setAttribute("message", "Registration successful! Your account is " + user.getStatus().name() + ". Please login.");
-            response.sendRedirect(request.getContextPath() + "/index.jsp"); // Redirect to login page
+            response.sendRedirect(request.getContextPath() + "/app/login"); // Redirect to login page
         } catch (SQLException e) {
             e.printStackTrace();
             request.setAttribute("errorMessage", "Registration failed: " + e.getMessage());

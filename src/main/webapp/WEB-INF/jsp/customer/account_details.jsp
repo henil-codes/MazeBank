@@ -1,103 +1,107 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
 	pageEncoding="UTF-8"%>
 <%@ page import="com.mazebank.model.Account"%>
+<%@ page import="com.mazebank.model.Transaction"%>
 <%@ page import="com.mazebank.util.NumberUtils"%>
-<%@ include file="../fragments/_sidebar.jspf"%>
+<%@ page import="java.util.List"%>
 <!DOCTYPE html>
 <html>
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Account Details</title>
-<link rel="stylesheet" type="text/css"
-	href="${pageContext.request.contextPath}/css/style.css">
+<link rel="stylesheet" href="${pageContext.request.contextPath}/css/dashboard.css">
+<link rel="stylesheet" href="${pageContext.request.contextPath}/css/account_details.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 </head>
-<body>
+<body class="dashboard-body">
+	<div class="dashboard-container">
+		<%@ include file="../fragments/_sidebar.jspf"%>
+		<div class="main-content">
+			<%
+			Account account = (Account) request.getAttribute("account");
+			if (account != null) {
+			%>
+			<div class="account-details-container">
+				<div class="section">
+					<h2>Account Details</h2>
+					<div class="account-card">
+						<p>
+							<strong>Account Number:</strong> <%=account.getAccountNumber()%></p>
+						<p>
+							<strong>Account Type:</strong> <%=account.getAccountType().name()%></p>
+						<p>
+							<strong>Current Balance:</strong> <span class="balance"><%=NumberUtils.formatCurrency(account.getBalance())%></span>
+						</p>
+						<p>
+							<strong>Status:</strong> <%=account.getStatus().name()%></p>
+						<p>
+							<strong>Overdraft Limit:</strong> <%=NumberUtils.formatCurrency(account.getOverdraftLimit())%></p>
+						<p>
+							<strong>Max Transaction Amount:</strong> <%=NumberUtils.formatCurrency(account.getMaxTransactionAmount())%></p>
+					</div>
+				</div>
 
-	<div class="main-content">
-		<h2>Account Details</h2>
-		<%
-		Account account = (Account) request.getAttribute("account");
-		%>
-		<%
-		if (account != null) {
-		%>
-		<p>
-			<strong>Account ID:</strong>
-			<%=account.getAccountId()%></p>
-		<p>
-			<strong>Account Number:</strong>
-			<%=account.getAccountNumber()%></p>
-		<p>
-			<strong>Account Type:</strong>
-			<%=account.getAccountType().name()%></p>
-		<p>
-			<strong>Balance:</strong>
-			<%=NumberUtils.formatCurrency(account.getBalance())%></p>
-		<p>
-			<strong>Overdraft Limit:</strong>
-			<%=NumberUtils.formatCurrency(account.getOverdraftLimit())%></p>
-		<p>
-			<strong>Max Transaction Amount:</strong>
-			<%=NumberUtils.formatCurrency(account.getMaxTransactionAmount())%></p>
-		<p>
-			<strong>Status:</strong>
-			<%=account.getStatus().name()%></p>
-		<p>
-			<strong>Created At:</strong>
-			<%=account.getCreatedAt()%></p>
-		<p>
-			<strong>Last Updated:</strong>
-			<%=account.getUpdatedAt()%></p>
-
-		<%-- Optionally display transactions for this account --%>
-		<%--
-            <h3>Recent Transactions</h3>
-            <% List<Transaction> transactions = (List<Transaction>) request.getAttribute("transactions"); %>
-            <% if (transactions!= null &&!transactions.isEmpty()) { %>
-                <table>
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Type</th>
-                            <th>Amount</th>
-                            <th>Date</th>
-                            <th>Description</th>
-                            <th>Status</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <% for (Transaction txn : transactions) { %>
-                            <tr>
-                                <td><%= txn.getTransactionId() %></td>
-                                <td><%= txn.getType().name() %></td>
-                                <td><%= NumberUtils.formatCurrency(txn.getAmount()) %></td>
-                                <td><%= txn.getTransactionDate() %></td>
-                                <td><%= txn.getDescription() %></td>
-                                <td><%= txn.getStatus().name() %></td>
-                            </tr>
-                        <% } %>
-                    </tbody>
-                </table>
-            <% } else { %>
-                <p>No transactions found for this account.</p>
-            <% } %>
-            --%>
-
-		<p>
-			<a href="${pageContext.request.contextPath}/app/dashboard">Back
-				to Dashboard</a>
-		</p>
-		<%
-		} else {
-		%>
-		<p>Account not found.</p>
-		<p>
-			<a href="${pageContext.request.contextPath}/app/dashboard">Back
-				to Dashboard</a>
-		</p>
-		<%
-		}
-		%>
+				<div class="section">
+					<h2>Transaction History</h2>
+					<%
+					List<Transaction> transactions = (List<Transaction>) request.getAttribute("transactions");
+					if (transactions != null && !transactions.isEmpty()) {
+					%>
+					<div class="table-card">
+						<table class="data-table transaction-table">
+							<thead>
+								<tr>
+									<th>Transaction ID</th>
+									<th>Type</th>
+									<th>Amount</th>
+									<th>Date</th>
+									<th>Description</th>
+									<th>Status</th>
+								</tr>
+							</thead>
+							<tbody>
+								<%
+								for (Transaction transaction : transactions) {
+								%>
+								<tr>
+									<td><%=transaction.getTransactionId()%></td>
+									<td><%=transaction.getType().name()%></td>
+									<td><%=NumberUtils.formatCurrency(transaction.getAmount())%></td>
+									<td><%=transaction.getTransactionDate()%></td>
+									<td><%=transaction.getDescription()%></td>
+									<td><%=transaction.getStatus().name()%></td>
+								</tr>
+								<%
+								}
+								%>
+							</tbody>
+						</table>
+					</div>
+					<%
+					} else {
+					%>
+					<div class="alert alert-info">
+						<p>No transactions found for this account.</p>
+					</div>
+					<%
+					}
+					%>
+				</div>
+			</div>
+			<%
+			} else {
+			%>
+			<div class="alert alert-error">
+				<p>Account not found.</p>
+			</div>
+			<p>
+				<a href="${pageContext.request.contextPath}/app/dashboard" class="btn btn-view">Back to Dashboard</a>
+			</p>
+			<%
+			}
+			%>
+		</div>
 	</div>
 </body>
 </html>

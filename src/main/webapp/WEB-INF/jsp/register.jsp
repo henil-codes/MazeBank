@@ -7,14 +7,14 @@
 <meta charset="UTF-8">
 <title>MazeBank - Register</title>
 <link rel="stylesheet" type="text/css"
-	href="${pageContext.request.contextPath}/css/style.css">
+	href="${pageContext.request.contextPath}/css/styles.css">
 <link rel="stylesheet" type="text/css"
-	href="${pageContext.request.contextPath}/css/login.css">
+	href="${pageContext.request.contextPath}/css/logins.css">
 </head>
 <body>
 	<div class="auth-container">
 		<div class="auth-image-container register-image-container">
-			<img src="${pageContext.request.contextPath}/img/bank.jpg"
+			<img src="${pageContext.request.contextPath}/img/register-image.png"
 				alt="Registration illustration">
 		</div>
 		<div class="auth-card-container register-card-container">

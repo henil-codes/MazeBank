@@ -27,7 +27,7 @@
 }
 
 .main-content h2::before {
-    content: '\f2bb';
+    content: '\f543';
     font-family: 'Font Awesome 5 Free';
     font-weight: 900;
     font-size: 1.2rem;
@@ -49,48 +49,6 @@
     opacity: 1;
 }
 
-.account-details-container {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-}
-
-.section {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-}
-
-.account-card {
-    background: #ffffff;
-    border-radius: 8px;
-    border: 1px solid #e5e7eb;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
-    padding: 0.75rem;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.account-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
-}
-
-.account-card p {
-    font-size: 0.8rem;
-    color: #1e2a44;
-    margin: 0.4rem 0;
-}
-
-.account-card p strong {
-    font-weight: 600;
-    color: #4b5e7e;
-}
-
-.account-card .balance {
-    font-weight: 700;
-    color: #2563eb;
-}
-
 .table-card {
     background: #ffffff;
     border-radius: 8px;
@@ -105,20 +63,20 @@
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
 }
 
-.transaction-table {
+.data-table {
     width: 100%;
     border-collapse: separate;
     border-spacing: 0;
     font-size: 0.8rem;
 }
 
-.transaction-table th, .transaction-table td {
+.data-table th, .data-table td {
     padding: 0.75rem;
     text-align: left;
     border-bottom: 1px solid #e5e7eb;
 }
 
-.transaction-table th {
+.data-table th {
     background: #f8fafc;
     font-weight: 600;
     color: #4b5e7e;
@@ -127,11 +85,11 @@
     letter-spacing: 0.05em;
 }
 
-.transaction-table tr:hover {
+.data-table tr:hover {
     background: #eff6ff;
 }
 
-.btn-view {
+.data-table .btn-view {
     color: #2563eb;
     text-decoration: none;
     font-size: 0.75rem;
@@ -139,7 +97,7 @@
     transition: color 0.2s ease;
 }
 
-.btn-view:hover {
+.data-table .btn-view:hover {
     color: #1e3a8a;
     text-decoration: underline;
 }
@@ -154,16 +112,12 @@
         padding: 0.5rem 0.75rem;
     }
 
-    .account-card p {
-        font-size: 0.75rem;
-    }
-
-    .transaction-table th, .transaction-table td {
+    .data-table th, .data-table td {
         padding: 0.5rem;
         font-size: 0.75rem;
     }
 
-    .btn-view {
+    .data-table .btn-view {
         font-size: 0.7rem;
     }
 }
@@ -173,15 +127,11 @@
         padding: 0.5rem;
     }
 
-    .account-card p {
+    .data-table {
         font-size: 0.7rem;
     }
 
-    .transaction-table {
-        font-size: 0.7rem;
-    }
-
-    .transaction-table th, .transaction-table td {
+    .data-table th, .data-table td {
         padding: 0.4rem;
     }
 }

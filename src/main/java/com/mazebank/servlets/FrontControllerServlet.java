@@ -41,6 +41,7 @@ import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.sql.SQLException;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -156,6 +157,9 @@ public class FrontControllerServlet extends HttpServlet {
 				System.out.println("Matched: /admin/users/delete");
 				handleDeleteUser(request, response);
 				break;
+			case "/customer/profile":
+			    handleProfileUpdate(request, response);
+			    break;
 			case "/test":
 				System.out.println("Test endpoint reached!");
 				response.getWriter().write("Servlet is working!");
@@ -217,6 +221,9 @@ public class FrontControllerServlet extends HttpServlet {
 			case "/customer/wire_transfer":
 				handleWireTransferPage(request, response);
 				break;
+			case "/customer/profile":
+			    showCustomerProfile(request, response);
+			    break;
 			// Admin-specific GET routes
 			case "/admin/users":
 				showAdminUserManagementPage(request, response);
@@ -382,6 +389,57 @@ public class FrontControllerServlet extends HttpServlet {
 			request.getRequestDispatcher("/WEB-INF/jsp/admin/user_edit.jsp").forward(request, response);
 		}
 	}
+	
+	private void handleProfileUpdate(HttpServletRequest request, HttpServletResponse response)
+	        throws ServletException, IOException, SQLException, ResourceNotFoundException {
+	    HttpSession session = request.getSession(false);
+	    User loggedInUser = (session != null) ? (User) session.getAttribute("loggedInUser") : null;
+	    if (loggedInUser == null || loggedInUser.getRole() != UserRole.CUSTOMER) {
+	        response.sendRedirect(request.getContextPath() + "/app/login");
+	        return;
+	    }
+
+	    String email = request.getParameter("email");
+	    String firstName = request.getParameter("firstName");
+	    String lastName = request.getParameter("lastName");
+
+	    if (email == null || firstName == null || lastName == null || 
+	        email.trim().isEmpty() || firstName.trim().isEmpty() || lastName.trim().isEmpty()) {
+	        response.sendRedirect(request.getContextPath() + "/app/customer/profile?message=ProfileError");
+	        return;
+	    }
+
+	    try {
+	        User updatedUser = new User();
+	        updatedUser.setUserId(loggedInUser.getUserId());
+	        updatedUser.setUsername(loggedInUser.getUsername()); // Keep unchanged
+	        updatedUser.setEmail(email);
+	        updatedUser.setFirstName(firstName);
+	        updatedUser.setLastName(lastName);
+	        updatedUser.setCreatedAt(loggedInUser.getCreatedAt());
+	        updatedUser.setUpdatedAt(LocalDateTime.now());
+	        updatedUser.setRole(loggedInUser.getRole());
+	        updatedUser.setStatus(loggedInUser.getStatus());
+	        updatedUser.setHolderType(loggedInUser.getHolderType());
+
+	        userService.updateUser(updatedUser);
+
+	        // Refresh the session with the updated user
+	        UserResponseDTO updatedDto = userService.getUserById(updatedUser.getUserId());
+	        User refreshedUser = convertToUser(updatedDto);
+	        session.setAttribute("loggedInUser", refreshedUser);
+
+	        response.sendRedirect(request.getContextPath() + "/app/customer/profile?message=ProfileUpdated");
+	    } catch (SQLException e) {
+	        e.printStackTrace();
+	        response.sendRedirect(request.getContextPath() + "/app/customer/profile?message=ProfileError");
+	    } catch (ResourceNotFoundException e) {
+	        e.printStackTrace();
+	        response.sendRedirect(request.getContextPath() + "/app/customer/profile?message=ProfileError");
+	    }
+		// TODO Auto-generated method stub
+	
+}
 
 	// Example converter method
 	private User convertToUser(UserResponseDTO dto) {
@@ -557,6 +615,26 @@ public class FrontControllerServlet extends HttpServlet {
 	    } catch (NumberFormatException e) {
 	        throw new IllegalArgumentException("Invalid account ID format: " + accountIdStr);
 	    }
+	}
+	
+	// check check
+	private void showCustomerProfile(HttpServletRequest request, HttpServletResponse response)
+	        throws ServletException, IOException, SQLException, ResourceNotFoundException {
+	    HttpSession session = request.getSession(false);
+	    User loggedInUser = (session != null) ? (User) session.getAttribute("loggedInUser") : null;
+	    if (loggedInUser == null) {
+	        response.sendRedirect(request.getContextPath() + "/app/login");
+	        return;
+	    }
+
+	    // Fetch the latest user data from the database
+	    UserResponseDTO userResponseDTO = userService.getUserById(loggedInUser.getUserId());
+	    if (userResponseDTO != null) {
+	        User updatedUser = convertToUser(userResponseDTO); // Use the existing convertToUser method
+	        session.setAttribute("loggedInUser", updatedUser); // Update session with fresh data
+	    }
+
+	    request.getRequestDispatcher("/WEB-INF/jsp/customer/profile.jsp").forward(request, response);
 	}
 	
 	private void handleUpdateAccount(HttpServletRequest request, HttpServletResponse response)

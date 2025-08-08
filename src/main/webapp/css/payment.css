@@ -1,0 +1,244 @@
+@charset "UTF-8";
+
+.main-content {
+    max-width: 900px;
+    margin: 0 auto;
+    background: #ffffff;
+    padding: 1rem;
+    border-radius: 10px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+    margin-bottom: 2rem;
+}
+
+.main-content h2 {
+    font-size: 1.4rem;
+    font-weight: 700;
+    color: #ffffff;
+    background: linear-gradient(135deg, #2563eb 0%, #1e3a8a 100%);
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    text-align: left;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.main-content h2::before {
+    content: '\f0d6';
+    font-family: 'Font Awesome 5 Free';
+    font-weight: 900;
+    font-size: 1.2rem;
+}
+
+.main-content h2::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255, 255, 255, 0.15);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.main-content h2:hover::after {
+    opacity: 1;
+}
+
+.main-content h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #1e2a44;
+    margin: 0.75rem 0 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.main-content h3::before {
+    content: '\f2b9';
+    font-family: 'Font Awesome 5 Free';
+    font-weight: 900;
+    font-size: 1rem;
+    color: #2563eb;
+}
+
+.main-content h4 {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #1e2a44;
+    margin-bottom: 0.5rem;
+}
+
+.main-content p {
+    font-size: 0.85rem;
+    color: #4b5e7e;
+    margin-bottom: 0.5rem;
+}
+
+.account-card {
+    list-style: none;
+    margin-bottom: 1rem;
+    background: #ffffff;
+    border-radius: 8px;
+    padding: 0.5rem;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.account-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+}
+
+.account-card li {
+    font-size: 0.8rem;
+    color: #1e2a44;
+    padding: 0.4rem 0.75rem;
+    border-bottom: 1px solid #e5e7eb;
+    transition: background 0.2s ease;
+}
+
+.account-card li:last-child {
+    border-bottom: none;
+}
+
+.account-card li:hover {
+    background: #eff6ff;
+}
+
+.transaction-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+}
+
+.form-card {
+    background: #ffffff;
+    padding: 0.75rem;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.06);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    position: relative;
+}
+
+.form-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.1);
+}
+
+.form-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 4px;
+    height: 100%;
+    background: #2563eb;
+    border-radius: 8px 0 0 8px;
+}
+
+.form-card label {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: #4b5e7e;
+    margin-bottom: 0.3rem;
+}
+
+.form-card input[type="number"],
+.form-card input[type="text"],
+.form-card select {
+    width: 100%;
+    padding: 0.4rem 0.75rem;
+    border: 1px solid #d1d5db;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    transition: all 0.2s ease;
+    margin-bottom: 0.5rem;
+    background: #f9fafb;
+}
+
+.form-card input[type="number"]:focus,
+.form-card input[type="text"]:focus,
+.form-card select:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    background: #ffffff;
+}
+
+.form-card input[type="submit"] {
+    background: #2563eb;
+    color: #ffffff;
+    border: none;
+    padding: 0.4rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    width: 100%;
+    text-align: center;
+}
+
+.form-card input[type="submit"]:hover {
+    background: #1e3a8a;
+    transform: translateY(-1px);
+}
+
+@media (max-width: 768px) {
+    .main-content {
+        padding: 0.75rem;
+    }
+
+    .main-content h2 {
+        font-size: 1.25rem;
+        padding: 0.5rem 0.75rem;
+    }
+
+    .main-content h3 {
+        font-size: 1rem;
+    }
+
+    .main-content h4 {
+        font-size: 0.9rem;
+    }
+
+    .transaction-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .form-card {
+        padding: 0.5rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .main-content {
+        padding: 0.5rem;
+    }
+
+    .account-card li {
+        font-size: 0.7rem;
+        padding: 0.3rem 0.5rem;
+    }
+
+    .form-card input[type="number"],
+    .form-card input[type="text"],
+    .form-card select {
+        font-size: 0.7rem;
+        padding: 0.3rem 0.5rem;
+    }
+
+    .form-card input[type="submit"] {
+        font-size: 0.7rem;
+        padding: 0.3rem;
+    }
+}

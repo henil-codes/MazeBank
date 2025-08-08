@@ -1,0 +1,144 @@
+.auth-container {
+    display: flex;
+    min-height: 100vh;
+    align-items: stretch;
+    background-color: #ffffff; /* White background */
+}
+
+.auth-card-container {
+    flex-basis: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    background-color: #ffffff; /* White for form area */
+}
+
+.auth-image-container {
+    flex-basis: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem;
+    background-color: #0052cc; /* Blue for image area */
+}
+
+/* Specifics for the Login Form */
+.login-form-container {
+    background-color: #ffffff;
+}
+
+.login-image-container {
+    background-color: #0052cc;
+}
+
+/* Auth Card Styling */
+.auth-card {
+    width: 100%;
+    max-width: 400px; /* Slightly reduced for better balance */
+    padding: 2.5rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Subtle shadow for depth */
+    border-radius: 10px; /* Rounded corners */
+}
+
+.auth-card h2 {
+    font-size: 2.2rem;
+    color: #0052cc;
+    margin-bottom: 1.5rem;
+    text-align: center;
+    font-weight: 700;
+}
+
+.alert {
+    background-color: #ffebee; /* Light red for error */
+    color: #c62828;
+    padding: 1rem;
+    border-radius: 5px;
+    margin-bottom: 1.5rem;
+    text-align: center;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    font-weight: 600;
+    color: #003087; /* Darker blue for labels */
+    margin-bottom: 0.5rem;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 0.9rem;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 1rem;
+    transition: border-color 0.3s ease;
+}
+
+.form-group input:focus {
+    border-color: #0052cc;
+    outline: none;
+    box-shadow: 0 0 5px rgba(0, 82, 204, 0.3);
+}
+
+.btn {
+    width: 100%;
+    padding: 1rem;
+    background-color: #0052cc;
+    color: #ffffff;
+    border: none;
+    border-radius: 25px;
+    font-weight: 700;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.btn:hover {
+    background-color: #003087;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+.mt-4 {
+    margin-top: 1.5rem;
+}
+
+.text-center a {
+    color: #0052cc;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.text-center a:hover {
+    text-decoration: underline;
+}
+
+/* Adjustments for the image */
+.auth-image-container img {
+    max-width: 90%;
+    height: auto;
+    border-radius: 10px; /* Rounded corners for image */
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .auth-container {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .auth-card-container, .auth-image-container {
+        flex-basis: 100%;
+        width: 100%;
+    }
+
+    .auth-image-container {
+        display: none; /* Hide image on mobile */
+    }
+
+    .auth-card {
+        max-width: 90%; /* Full width on mobile */
+    }
+}

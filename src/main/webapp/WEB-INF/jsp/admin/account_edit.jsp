@@ -35,7 +35,7 @@
 				<div class="form-group">
 					<label for="accountType">Account Type</label> <select
 						id="accountType" name="accountType" required>
-						<option value="CHECKING"
+						<option value="CHEQUING"
 							${account.accountType.name() eq 'CHEQUING' ? 'selected' : ''}>CHEQUING</option>
 						<option value="SAVINGS"
 							${account.accountType.name() eq 'SAVINGS' ? 'selected' : ''}>Savings</option>
